@@ -1,0 +1,30 @@
+dependencies {
+    implementation libs.bundles.nva
+    implementation libs.bundles.jackson
+    implementation libs.bundles.others
+
+    testImplementation libs.bundles.testing
+}
+
+
+tasks.named('test') {
+    useJUnitPlatform {
+    }
+    failFast = true
+    testLogging {
+        events 'skipped', 'passed', 'failed'
+    }
+    finalizedBy jacocoTestReport
+}
+
+sourceSets {
+    test {
+        resources {
+            srcDir file('src/test/java')
+            exclude '**/*.java'
+        }
+    }
+}
+
+test{
+}

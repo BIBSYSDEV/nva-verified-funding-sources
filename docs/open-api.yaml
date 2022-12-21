@@ -1,0 +1,141 @@
+openapi: 3.0.3
+
+info:
+  title: NVA verified funding sources API
+  description: >
+      The NVA verified funding sources API. It provides transformed data from third party funding
+      sources.
+  termsOfService: https://nva.unit.no/terms/
+  contact:
+    email: nva@unit.no
+  license:
+    name: MIT/NLOD 2.0
+    url: https://link.to.license
+  version: 1.0.0
+
+externalDocs:
+  description: Find out more about NVA
+  url: https://nva.unit.no
+
+servers:
+  - url: https://api.nva.unit.no/verified-funding
+  - url: https://api.dev.nva.aws.unit.no/verified-funding
+  - url: https://api.sandbox.nva.aws.unit.no/verified-funding
+  - url: https://api.test.nva.aws.unit.no/verified-funding
+
+paths:
+  /nfr/{identifier}:
+    get:
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NfrFetchFundingFunction.Arn}/invocations
+        httpMethod: POST
+        type: "AWS_PROXY"
+      tags:
+        - NfrVerifiedFundingSources
+      summary: Get NFR funding source by identifier
+      description: Returns a funding source by identifier
+      operationId: NfrGetFundingSource
+      parameters:
+        - name: identifier
+          in: path
+          description: The funding source identifier
+          required: true
+          schema:
+            type: string
+          example: '318142'
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Funding'
+              examples:
+                objectExample:
+                  $ref: '#/components/examples/Funding'
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Funding'
+              examples:
+                objectExample:
+                  $ref: '#/components/examples/Funding'
+        400:
+          $ref: '#/components/responses/400'
+        404:
+          $ref: '#/components/responses/400'
+        500:
+          $ref: '#/components/responses/500'
+        502:
+          $ref: '#/components/responses/502'
+
+components:
+  responses:
+    400:
+      description: Bad Request
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    404:
+      description: Not found
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    500:
+      description: Internal Server Error
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    502:
+      description: Bad Gateway from upstream
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+  schemas:
+    Funding:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        identifier:
+          type: string
+        name:
+          $ref: '#/components/schemas/Languages'
+    Problem:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Human-readable description of the error status
+        status:
+          type: integer
+          format: int32
+          description: The HTTP status code associated with the problem
+        detail:
+          type: string
+          description: A more detailed error message describing the error and potential mitigations
+        requestId:
+          type: string
+          description: Unique id for the request
+    Id:
+      type: string
+      pattern: 'https:\/\/.*$'
+      description: The URI of the object ID
+    Languages:
+      type: object
+      pattern: '^[a-z]{2}$'
+      additionalProperties:
+        type: string
+        pattern: '.+'
+
+  examples:
+    Funding:
+      value:
+        id: 'https://api.dev.nva.aws.unit.no/verified-funding/nfr/318142'
+        identifier: '318142'
+        name:
+          nb: 'OmniSense 123'
