@@ -24,6 +24,8 @@ import no.unit.nva.stubs.WiremockHttpClient;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.core.Environment;
+import org.hamcrest.CoreMatchers;
+import org.hamcrest.text.IsEmptyString;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.zalando.problem.Problem;
@@ -121,20 +123,10 @@ public class FetchNfrFundingByIdentifierHandlerTest {
     @Test
     public void shouldReturnBadGatewayOnNonSuccessStatusCodeFromNfrApi()
         throws IOException {
+
         var projectId = stubber.byProjectIdBadRequest();
 
-        var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
-                        .withPathParameters(Map.of("identifier", Integer.toString(projectId)))
-                        .build();
-
-        handlerUnderTest.handleRequest(input, output, context);
-
-        var response = GatewayResponse.fromOutputStream(output, Problem.class);
-
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_GATEWAY)));
-
-        var problem = response.getBodyObject(Problem.class);
-        assertThat(problem.getDetail(), is(equalTo("Unexpected response: 400 - \"{}\"")));
+        shouldReturnBadGatewayWithProblemDetail(projectId, "Unexpected response: 400 - \"{}\"");
     }
 
     @Test
@@ -148,6 +140,10 @@ public class FetchNfrFundingByIdentifierHandlerTest {
 
         var projectId = stubber.byProjectIdBadRequest();
 
+        shouldReturnBadGatewayWithProblemDetail(projectId, "Failed to communicate with NFR rest api!");
+    }
+
+    public void shouldReturnBadGatewayWithProblemDetail(int projectId, String detail) throws IOException {
         var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
                         .withPathParameters(Map.of("identifier", Integer.toString(projectId)))
                         .build();
@@ -159,6 +155,6 @@ public class FetchNfrFundingByIdentifierHandlerTest {
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_GATEWAY)));
 
         var problem = response.getBodyObject(Problem.class);
-        assertThat(problem.getDetail(), is(equalTo("Failed to communicate with NFR rest api!")));
+        assertThat(problem.getDetail(), CoreMatchers.not(IsEmptyString.emptyOrNullString())is(equalTo(detail)));
     }
 }
