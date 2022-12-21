@@ -24,8 +24,6 @@ import no.unit.nva.stubs.WiremockHttpClient;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.core.Environment;
-import org.hamcrest.CoreMatchers;
-import org.hamcrest.text.IsEmptyString;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.zalando.problem.Problem;
@@ -155,6 +153,6 @@ public class FetchNfrFundingByIdentifierHandlerTest {
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_GATEWAY)));
 
         var problem = response.getBodyObject(Problem.class);
-        assertThat(problem.getDetail(), CoreMatchers.not(IsEmptyString.emptyOrNullString())is(equalTo(detail)));
+        assertThat(problem.getDetail(), is(equalTo(detail)));
     }
 }
