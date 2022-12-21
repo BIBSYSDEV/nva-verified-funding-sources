@@ -1,0 +1,110 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Template creates lambdas and apis for verified funding sources
+
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 40
+    MemorySize: 1798
+    Runtime: java11
+    Architectures:
+      - arm64
+    Environment:
+      Variables:
+        ALLOWED_ORIGIN: '*'
+        API_DOMAIN: !Ref ApiDomain
+        CUSTOM_DOMAIN_NAME_PATH: !Ref CustomDomainBasePath
+  Api:
+    Cors:
+      AllowOrigin: "'*'"
+      AllowMethods: "'OPTIONS,GET'"
+      AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,Access-Control-Allow-Origin'"
+
+Parameters:
+  ApiDomain:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /NVA/ApiDomain
+    Description: Domain-name for the backend
+  NfrBaseUrl:
+    Type: String
+    Description: Base url for NFR prosjektbanken API
+    Default: https://prosjektbanken.forskningsradet.no/prosjektbanken/rest/cristin
+    AllowedValues:
+      - https://prosjektbanken.forskningsradet.no/prosjektbanken/rest/cristin
+  CustomDomainBasePath:
+    Type: String
+    Description: Base path mapping in CustomDomain
+    Default: verified-funding
+
+Resources:
+
+  ApiAccessLogGroup:
+    Type: AWS::Logs::LogGroup
+
+  NvaVerifiedFundingSourcesApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      DefinitionBody:
+        'Fn::Transform':
+          Name: AWS::Include
+          Parameters:
+            Location: ./docs/open-api.yaml
+      AccessLogSetting:
+        DestinationArn: !GetAtt ApiAccessLogGroup.Arn
+        Format: '{ "apiId": "$context.apiId", "requestId": "$context.requestId", "requestTime": "$context.requestTime", "requestTimeEpoch": "$context.requestTimeEpoch", "httpMethod": "$context.httpMethod", "path": "$context.path", "status": "$context.status",  "error.message": "$context.error.message" }'
+      StageName: Prod
+      Auth:
+        DefaultAuthorizer: NONE
+      EndpointConfiguration: Regional
+
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: [lambda.amazonaws.com]
+            Action: ['sts:AssumeRole']
+      Policies:
+        - PolicyName: writeLog
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:*'
+
+  NfrFetchFundingFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: nfr-verified-funding
+      Handler: no.sikt.nva.funding.verified.nfr.handlers.FetchNfrFundingByIdentifierHandler::handleRequest
+      Environment:
+        Variables:
+          NFR_API_BASE_URI: !Ref NfrBaseUrl
+      Events:
+        NfrFetchFundingEvent:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            RestApiId: !Ref NvaVerifiedFundingSourcesApi
+            Path: /nfr/{identifier}
+            Method: get
+
+  NvaVerifiedFundingSourcesBasePathMapping:
+    Type: AWS::ApiGateway::BasePathMapping
+    Properties:
+      BasePath: !Ref CustomDomainBasePath
+      DomainName: !Ref ApiDomain
+      RestApiId: !Ref NvaVerifiedFundingSourcesApi
+      Stage: !Ref NvaVerifiedFundingSourcesApi.Stage
+
+
+

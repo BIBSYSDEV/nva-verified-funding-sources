@@ -1,0 +1,4 @@
+enableFeaturePreview('VERSION_CATALOGS')
+rootProject.name = 'nva-verified-funding-sources'
+include 'nfr-verified-funding'
+
