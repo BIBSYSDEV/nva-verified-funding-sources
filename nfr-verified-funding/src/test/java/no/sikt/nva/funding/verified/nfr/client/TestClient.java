@@ -11,7 +11,7 @@ public class TestClient {
         var baseUri = URI.create("https://prosjektbanken.forskningsradet.no/prosjektbanken/rest/cristin");
         var client = new NfrApiClient(httpClient, baseUri);
 
-        var searchResult = client.fetchByProjectId(193391);
+        var searchResult = client.query("193391", 0, 10);
 
         System.out.println(searchResult);
     }

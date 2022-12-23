@@ -98,6 +98,27 @@ Resources:
             Path: /nfr/{identifier}
             Method: get
 
+  NfrQueryFundingsFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: nfr-verified-funding
+      Handler: no.sikt.nva.funding.verified.nfr.handlers.QueryNfrFundingsHandler::handleRequest
+      Environment:
+        Variables:
+          NFR_API_BASE_URI: !Ref NfrBaseUrl
+      Events:
+        NfrQueryFundingsEvent:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            RestApiId: !Ref NvaVerifiedFundingSourcesApi
+            Path: /nfr
+            Method: get
+            RequestParameters:
+              - method.request.querystring.term
+              - method.request.querystring.name
+              - method.request.querystring.offset
+              - method.request.querystring.size
+
   NvaVerifiedFundingSourcesBasePathMapping:
     Type: AWS::ApiGateway::BasePathMapping
     Properties:

@@ -24,6 +24,70 @@ servers:
   - url: https://api.test.nva.aws.unit.no/verified-funding
 
 paths:
+  /nfr:
+    get:
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NfrQueryFundingsFunction.Arn}/invocations
+        httpMethod: POST
+        type: "AWS_PROXY"
+      tags:
+        - NfrVerifiedFundingSources
+      summary: Query NFR funding by identifier
+      description: Returns a funding by identifier
+      operationId: NfrQueryFundings
+      parameters:
+        - name: name
+          in: query
+          description: Name of a person. Required if term is not supplied.
+          required: false
+          schema:
+            type: string
+          example: 'Ola+Nordmann'
+        - name: term
+          in: query
+          description: The search term. Required if name is not supplied.
+          required: false
+          schema:
+            type: string
+          example: 'bio+research'
+        - name: offset
+          in: query
+          description: The search offset. At what position in the search result to start. Default is 0 (at the beginning).
+          required: false
+          schema:
+            type: integer
+          example: '0'
+        - name: size
+          in: query
+          description: The size of the result set to return. Default is 10.
+          required: false
+          schema:
+            type: integer
+          example: 10
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResult'
+              examples:
+                objectExample:
+                  $ref: '#/components/examples/SearchResult'
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/SearchResult'
+              examples:
+                objectExample:
+                  $ref: '#/components/examples/SearchResult'
+        400:
+          $ref: '#/components/responses/400'
+        500:
+          $ref: '#/components/responses/500'
+        502:
+          $ref: '#/components/responses/502'
+
   /nfr/{identifier}:
     get:
       x-amazon-apigateway-integration:
@@ -33,13 +97,13 @@ paths:
         type: "AWS_PROXY"
       tags:
         - NfrVerifiedFundingSources
-      summary: Get NFR funding source by identifier
-      description: Returns a funding source by identifier
-      operationId: NfrGetFundingSource
+      summary: Get NFR funding by identifier
+      description: Returns a funding  by identifier
+      operationId: NfrGetFunding
       parameters:
         - name: identifier
           in: path
-          description: The funding source identifier
+          description: The funding identifier
           required: true
           schema:
             type: string
@@ -105,6 +169,25 @@ components:
           type: string
         name:
           $ref: '#/components/schemas/Languages'
+
+    SearchResult:
+      type: object
+      properties:
+        '@context':
+          $ref: '#/components/schemas/Id'
+        id:
+          $ref: '#/components/schemas/Id'
+        size:
+          type: integer
+        previousResults:
+          $ref: '#/components/schemas/Id'
+        nextResults:
+          $ref: '#/components/schemas/Id'
+        hits:
+          type: array
+          items:
+            $ref: '#/components/schemas/Funding'
+
     Problem:
       type: object
       properties:
@@ -121,10 +204,12 @@ components:
         requestId:
           type: string
           description: Unique id for the request
+
     Id:
       type: string
       pattern: 'https:\/\/.*$'
       description: The URI of the object ID
+
     Languages:
       type: object
       pattern: '^[a-z]{2}$'
@@ -133,6 +218,19 @@ components:
         pattern: '.+'
 
   examples:
+    SearchResult:
+      value:
+        '@context': 'https://github.bibsysdev.com/src/funding-context.json'
+        id: 'https://api.dev.nva.aws.unit.no/verified-funding/nfr?term=123&offset=1&size=1'
+        size: 3
+        previousResults: 'https://api.dev.nva.aws.unit.no/verified-funding/nfr?term=123&offset=0&size=1'
+        nextResults: 'https://api.dev.nva.aws.unit.no/verified-funding/nfr?term=123&offset=2&size=1'
+        hits:
+          - id: 'https://api.dev.nva.aws.unit.no/verified-funding/nfr/318142'
+            identifier: '318142'
+            name:
+              nb: 'OmniSense 123'
+
     Funding:
       value:
         id: 'https://api.dev.nva.aws.unit.no/verified-funding/nfr/318142'
