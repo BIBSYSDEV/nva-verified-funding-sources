@@ -42,7 +42,9 @@ public class FetchNfrFundingByIdentifierHandler extends ApiGatewayHandler<Void, 
         var funding = fetchByIdentifier(identifier);
         var apiDomain = environment.readEnv(EnvironmentKeys.API_DOMAIN);
         var basePath = environment.readEnv(EnvironmentKeys.CUSTOM_DOMAIN_NAME_PATH);
-        return funding.asFunding(apiDomain, basePath);
+        var cristinBasePath = environment.readEnv(EnvironmentKeys.CRISTIN_BASE_PATH);
+        var cristinFundingSourcesPath = environment.readEnv(EnvironmentKeys.CRISTIN_FUNDING_SOURCES_PATH);
+        return funding.asFunding(apiDomain, basePath, cristinBasePath, cristinFundingSourcesPath);
     }
 
     private NfrFunding fetchByIdentifier(int projectId) throws BadGatewayException, NotFoundException {
