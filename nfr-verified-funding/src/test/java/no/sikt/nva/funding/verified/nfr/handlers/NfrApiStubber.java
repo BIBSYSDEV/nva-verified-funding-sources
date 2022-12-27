@@ -9,6 +9,8 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomInteger;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static nva.commons.core.attempt.Try.attempt;
 import java.net.HttpURLConnection;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +20,9 @@ import no.sikt.nva.funding.verified.nfr.client.model.NfrFundingSearchResult;
 
 public class NfrApiStubber {
 
+    private static final String SPACE = " ";
     private final Map<Integer, NfrFunding> exactMatchByProjectId = new ConcurrentHashMap<>();
+    private final Map<String, List<NfrFunding>> exactMatchesByLeadName = new ConcurrentHashMap<>();
 
     public NfrApiStubber() {
         // no-op
@@ -27,11 +31,11 @@ public class NfrApiStubber {
     public int byProjectIdSingleMatch(int totalHits) {
         var projectId = randomInteger();
 
-        var responseObject = new NfrFundingSearchResult(totalHits, 0, 1,
+        var responseObject = new NfrFundingSearchResult(totalHits, 0, 10,
                                                         generateSingleHitMultipleCandidates(projectId,
                                                                                             totalHits - 1));
 
-        var url = "/search?query=" + projectId + "&from=0&size=1";
+        var url = "/search?query=" + projectId + "&from=0&size=10";
 
         attempt(() -> stubFor(get(url)
                                   .willReturn(aResponse()
@@ -45,11 +49,11 @@ public class NfrApiStubber {
     public int byProjectIdNoExactMatch(int totalHits) {
         var projectId = randomInteger();
 
-        var responseObject = new NfrFundingSearchResult(totalHits, 0, 1,
+        var responseObject = new NfrFundingSearchResult(totalHits, 0, 10,
                                                         generateNoHitsMultipleCandidates(projectId,
                                                                                          totalHits));
 
-        var url = "/search?query=" + projectId + "&from=0&size=1";
+        var url = "/search?query=" + projectId + "&from=0&size=10";
 
         attempt(() -> stubFor(get(url)
                                   .willReturn(aResponse()
@@ -63,7 +67,7 @@ public class NfrApiStubber {
     public int byProjectIdBadRequest() {
         var projectId = randomInteger();
 
-        var url = "/search?query=" + projectId + "&from=0&size=1";
+        var url = "/search?query=" + projectId + "&from=0&size=10";
 
         attempt(() -> stubFor(get(url)
                                   .willReturn(aResponse()
@@ -76,6 +80,66 @@ public class NfrApiStubber {
 
     public NfrFunding getMatchingEntryFromNfr(int projectId) {
         return exactMatchByProjectId.get(projectId);
+    }
+
+    public List<NfrFunding> getMatchingEntriesByLeadName(String leadName) {
+        return exactMatchesByLeadName.get(leadName);
+    }
+
+    public String withMatchingLeadNameAsMostRelevantHit(int numberOfMatchesByName, int numberOfAdditionalMatches,
+                                                        int from, int size) {
+        var leadName = randomLeadName();
+
+        var matches = randomFundingsWithLeadName(leadName, numberOfMatchesByName);
+        this.exactMatchesByLeadName.put(leadName, new ArrayList<>(matches));
+        matches.addAll(randomFundingsWithDifferentLeadName(leadName, numberOfAdditionalMatches));
+
+        var totalHits = numberOfMatchesByName + numberOfAdditionalMatches;
+        var responseObject = new NfrFundingSearchResult(totalHits, from, size, matches);
+
+        var url = "/search?query=" + URLEncoder.encode(leadName, StandardCharsets.UTF_8)
+                  + "&from=" + from
+                  + "&size=" + size;
+
+        attempt(() -> stubFor(get(url)
+                                  .willReturn(aResponse()
+                                                  .withHeader("Content-Type",
+                                                              "application/json;charset=utf-8")
+                                                  .withBody(dtoObjectMapper.writeValueAsString(responseObject))
+                                                  .withStatus(HttpURLConnection.HTTP_OK)))).orElseThrow();
+
+        return leadName;
+    }
+
+    public List<NfrFunding> withRandomMatches(String term, int count, int from, int size) {
+        var matches = new ArrayList<NfrFunding>(count);
+        for (int counter = 0; counter < count; counter++) {
+            matches.add(randomFunding(randomInteger(), randomString()));
+        }
+
+        var responseObject = new NfrFundingSearchResult(count, from, size, matches);
+
+        var url = "/search?query=" + URLEncoder.encode(term, StandardCharsets.UTF_8)
+                  + "&from=" + from
+                  + "&size=" + size;
+
+        attempt(() -> stubFor(get(url)
+                                  .willReturn(aResponse()
+                                                  .withHeader("Content-Type",
+                                                              "application/json;charset=utf-8")
+                                                  .withBody(dtoObjectMapper.writeValueAsString(responseObject))
+                                                  .withStatus(HttpURLConnection.HTTP_OK)))).orElseThrow();
+
+        return matches;
+    }
+
+    private List<NfrFunding> randomFundingsWithLeadName(String leadName, int numberOfFundings) {
+        var fundings = new ArrayList<NfrFunding>(numberOfFundings);
+
+        for (int counter = 0; counter < numberOfFundings; counter++) {
+            fundings.add(randomFundingWithLeadName(leadName));
+        }
+        return fundings;
     }
 
     private List<NfrFunding> generateSingleHitMultipleCandidates(int projectId, int hitsCount) {
@@ -99,13 +163,25 @@ public class NfrApiStubber {
     }
 
     private NfrFunding randomFundingWithProjectId(int projectId) {
+        return randomFunding(projectId, randomLeadName());
+    }
+
+    private String randomLeadName() {
+        return String.join(SPACE, randomString(), randomString());
+    }
+
+    private NfrFunding randomFundingWithLeadName(String leadName) {
+        return randomFunding(randomInteger(), leadName);
+    }
+
+    private NfrFunding randomFunding(int projectId, String leadName) {
         var activeFrom = randomInstant();
         var activeTo = randomInstant(activeFrom);
 
         return new NfrFunding(projectId,
                               activeFrom,
                               activeTo,
-                              randomString(),
+                              leadName,
                               Map.of("title", randomString()),
                               Map.of("title", randomString()));
     }
@@ -117,5 +193,22 @@ public class NfrApiStubber {
         } while (projectId == newProjectId);
 
         return randomFundingWithProjectId(newProjectId);
+    }
+
+    private List<NfrFunding> randomFundingsWithDifferentLeadName(String leadName, int numberOfFundings) {
+        var fundings = new ArrayList<NfrFunding>(numberOfFundings);
+        for (int counter = 0; counter < numberOfFundings; counter++) {
+            fundings.add(randomFundingWithDifferentLeadName(leadName));
+        }
+        return fundings;
+    }
+
+    private NfrFunding randomFundingWithDifferentLeadName(String leadName) {
+        String newLeadName;
+        do {
+            newLeadName = randomLeadName();
+        } while (leadName.equals(newLeadName));
+
+        return randomFundingWithLeadName(newLeadName);
     }
 }

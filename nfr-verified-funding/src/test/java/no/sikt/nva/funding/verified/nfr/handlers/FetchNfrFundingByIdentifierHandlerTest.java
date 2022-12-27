@@ -37,9 +37,6 @@ public class FetchNfrFundingByIdentifierHandlerTest {
     private ByteArrayOutputStream output;
     private Environment environment;
 
-    public FetchNfrFundingByIdentifierHandlerTest() {
-    }
-
     @BeforeEach
     public void setup(WireMockRuntimeInfo runtimeInfo) {
         this.environment = mock(Environment.class);
@@ -141,7 +138,23 @@ public class FetchNfrFundingByIdentifierHandlerTest {
         shouldReturnBadGatewayWithProblemDetail(projectId, "Failed to communicate with NFR rest api!");
     }
 
-    public void shouldReturnBadGatewayWithProblemDetail(int projectId, String detail) throws IOException {
+    @Test
+    public void shouldReturnBadRequestWhenIdentifierPathParameterIsNotAnInteger() throws IOException {
+        var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
+                        .withPathParameters(Map.of("identifier", "abc"))
+                        .build();
+
+        handlerUnderTest.handleRequest(input, output, context);
+
+        var response = GatewayResponse.fromOutputStream(output, Problem.class);
+
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
+
+        var problem = response.getBodyObject(Problem.class);
+        assertThat(problem.getDetail(), is(equalTo("'identifier' path parameter must be an integer")));
+    }
+
+    private void shouldReturnBadGatewayWithProblemDetail(int projectId, String detail) throws IOException {
         var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
                         .withPathParameters(Map.of("identifier", Integer.toString(projectId)))
                         .build();
@@ -155,4 +168,5 @@ public class FetchNfrFundingByIdentifierHandlerTest {
         var problem = response.getBodyObject(Problem.class);
         assertThat(problem.getDetail(), is(equalTo(detail)));
     }
+
 }

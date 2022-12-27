@@ -7,6 +7,7 @@ import java.util.Map;
 
 public class Funding {
 
+    private static final String TYPE_FIELD = "type";
     private static final String ID_FIELD = "id";
     private static final String IDENTIFIER_FIELD = "identifier";
     private static final String NAME_FIELD = "name";
@@ -14,6 +15,9 @@ public class Funding {
     public static final String LANGUAGE_EN = "en";
     public static final String LANGUAGE_NB = "nb";
 
+    @JsonProperty(TYPE_FIELD)
+    @SuppressWarnings("unused")
+    private static final String type = "Funding";
     @JsonProperty(ID_FIELD)
     private final URI id;
     @JsonProperty(IDENTIFIER_FIELD)

@@ -44,7 +44,7 @@ public class PagedSearchResult<T> {
     private final int totalSize;
     @JsonProperty(NEXT_RESULTS_FIELD_NAME)
     private final URI nextResults;
-    @JsonProperty(NEXT_RESULTS_FIELD_NAME)
+    @JsonProperty(PREVIOUS_RESULTS_FIELD_NAME)
     private final URI previousResults;
     @JsonProperty(HITS_FIELD_NAME)
     private final List<T> hits;
