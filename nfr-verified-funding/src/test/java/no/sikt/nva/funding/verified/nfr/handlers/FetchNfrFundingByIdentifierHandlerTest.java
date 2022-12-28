@@ -2,6 +2,8 @@ package no.sikt.nva.funding.verified.nfr.handlers;
 
 import static no.sikt.nva.funding.verified.nfr.EnvironmentKeys.ALLOWED_ORIGIN;
 import static no.sikt.nva.funding.verified.nfr.EnvironmentKeys.API_DOMAIN;
+import static no.sikt.nva.funding.verified.nfr.EnvironmentKeys.CRISTIN_BASE_PATH;
+import static no.sikt.nva.funding.verified.nfr.EnvironmentKeys.CRISTIN_FUNDING_SOURCES_PATH;
 import static no.sikt.nva.funding.verified.nfr.EnvironmentKeys.CUSTOM_DOMAIN_NAME_PATH;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -44,6 +46,8 @@ public class FetchNfrFundingByIdentifierHandlerTest {
         when(environment.readEnv(API_DOMAIN)).thenReturn("localhost");
         when(environment.readEnv(ALLOWED_ORIGIN)).thenReturn("*");
         when(environment.readEnv(CUSTOM_DOMAIN_NAME_PATH)).thenReturn("verified-funding");
+        when(environment.readEnv(CRISTIN_BASE_PATH)).thenReturn("cristin");
+        when(environment.readEnv(CRISTIN_FUNDING_SOURCES_PATH)).thenReturn("funding-sources");
 
         var httpClient = WiremockHttpClient.create();
         var apiClient = new NfrApiClient(httpClient, URI.create(runtimeInfo.getHttpsBaseUrl()));
@@ -68,6 +72,9 @@ public class FetchNfrFundingByIdentifierHandlerTest {
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
 
         var funding = response.getBodyObject(Funding.class);
+
+        var source = funding.getSource();
+        assertThat(source, is(equalTo(URI.create("https://localhost/cristin/funding-sources/NFR"))));
 
         var expectedId = URI.create("https://localhost/verified-funding/nfr/" + projectId);
         assertThat(funding.getId(), is(equalTo(expectedId)));
@@ -168,5 +175,4 @@ public class FetchNfrFundingByIdentifierHandlerTest {
         var problem = response.getBodyObject(Problem.class);
         assertThat(problem.getDetail(), is(equalTo(detail)));
     }
-
 }

@@ -17,6 +17,9 @@ Globals:
         ALLOWED_ORIGIN: '*'
         API_DOMAIN: !Ref ApiDomain
         CUSTOM_DOMAIN_NAME_PATH: !Ref CustomDomainBasePath
+        CRISTIN_BASE_PATH: !Ref CristinBasePath
+        CRISTIN_FUNDING_SOURCES_PATH: !Ref CristinFundingSourcesPath
+
   Api:
     Cors:
       AllowOrigin: "'*'"
@@ -38,6 +41,14 @@ Parameters:
     Type: String
     Description: Base path mapping in CustomDomain
     Default: verified-funding
+  CristinBasePath:
+    Type: String
+    Description: Base path mapping for Cristin
+    Default: cristin
+  CristinFundingSourcesPath:
+    Type: String
+    Description: Base path mapping in CustomDomain
+    Default: funding-sources
 
 Resources:
 

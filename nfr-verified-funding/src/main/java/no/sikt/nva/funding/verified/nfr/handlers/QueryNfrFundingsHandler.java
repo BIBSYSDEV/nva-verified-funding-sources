@@ -55,13 +55,17 @@ public class QueryNfrFundingsHandler extends ApiGatewayHandler<Void, PagedSearch
 
         var apiDomain = environment.readEnv(EnvironmentKeys.API_DOMAIN);
         var basePath = environment.readEnv(EnvironmentKeys.CUSTOM_DOMAIN_NAME_PATH);
+        var cristinBasePath = environment.readEnv(EnvironmentKeys.CRISTIN_BASE_PATH);
+        var cristinFundingSourcesPath = environment.readEnv(EnvironmentKeys.CRISTIN_FUNDING_SOURCES_PATH);
 
         PagedSearchResult<Funding> searchResult;
         if (nameOpt.isPresent()) {
-            searchResult = queryByLeadName(nameOpt.get(), offset, size, apiDomain, basePath);
+            searchResult = queryByLeadName(nameOpt.get(), offset, size, apiDomain, basePath, cristinBasePath,
+                                           cristinFundingSourcesPath);
         } else {
             var term = requestInfo.getQueryParameter(TERM_QUERY_PARAM);
-            searchResult = queryByTerm(term, offset, size, apiDomain, basePath);
+            searchResult = queryByTerm(term, offset, size, apiDomain, basePath, cristinBasePath,
+                                       cristinFundingSourcesPath);
         }
         return searchResult;
     }
@@ -96,7 +100,9 @@ public class QueryNfrFundingsHandler extends ApiGatewayHandler<Void, PagedSearch
                                                        int offset,
                                                        int size,
                                                        String apiDomain,
-                                                       String basePath)
+                                                       String basePath,
+                                                       String cristinBasePath,
+                                                       String cristinFundingSourcesPath)
         throws BadGatewayException {
 
         var searchResult = apiClient.query(name, offset, size);
@@ -104,7 +110,8 @@ public class QueryNfrFundingsHandler extends ApiGatewayHandler<Void, PagedSearch
         var hits = searchResult.getHits().stream()
                        .filter(funding -> funding.getLeadName().toLowerCase(Locale.ROOT).equals(
                            name.toLowerCase(Locale.ROOT)))
-                       .map(funding -> funding.asFunding(apiDomain, basePath))
+                       .map(funding -> funding.asFunding(apiDomain, basePath, cristinBasePath,
+                                                         cristinFundingSourcesPath))
                        .collect(Collectors.toList());
 
         var baseUri = new UriWrapper(HTTPS, apiDomain).addChild(basePath, "nfr").getUri();
@@ -117,13 +124,16 @@ public class QueryNfrFundingsHandler extends ApiGatewayHandler<Void, PagedSearch
                                                    int offset,
                                                    int size,
                                                    String apiDomain,
-                                                   String basePath)
+                                                   String basePath,
+                                                   String cristinBasePath,
+                                                   String cristinFundingSourcesPath)
         throws BadGatewayException {
 
         var searchResult = apiClient.query(term, offset, size);
 
         var hits = searchResult.getHits().stream()
-                       .map(funding -> funding.asFunding(apiDomain, basePath))
+                       .map(funding -> funding.asFunding(apiDomain, basePath, cristinBasePath,
+                                                         cristinFundingSourcesPath))
                        .collect(Collectors.toList());
 
         var baseUri = new UriWrapper(HTTPS, apiDomain).addChild(basePath, "nfr").getUri();

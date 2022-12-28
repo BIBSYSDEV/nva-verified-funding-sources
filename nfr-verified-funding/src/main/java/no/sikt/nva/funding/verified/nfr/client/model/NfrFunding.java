@@ -14,7 +14,9 @@ import nva.commons.core.JacocoGenerated;
 import nva.commons.core.paths.UriWrapper;
 
 public final class NfrFunding {
+
     private static final String TITLE_METADATA_KEY = "title";
+    private static final String NFR_SOURCE = "NFR";
 
     @JsonProperty("projectId")
     private final int projectId;
@@ -68,7 +70,8 @@ public final class NfrFunding {
         return norwegianMetadata;
     }
 
-    public Funding asFunding(final String apiDomain, final String basePath) {
+    public Funding asFunding(final String apiDomain, final String basePath, final String cristinBasePath,
+                             final String cristinFundingSourcesPath) {
         var identifier = Integer.toString(projectId);
         var id = new UriWrapper(HTTPS, apiDomain).addChild(basePath, "nfr", identifier).getUri();
         var name = new ConcurrentHashMap<String, String>();
@@ -78,7 +81,10 @@ public final class NfrFunding {
         if (norwegianMetadata.containsKey(TITLE_METADATA_KEY)) {
             name.put(LANGUAGE_NB, norwegianMetadata.get(TITLE_METADATA_KEY));
         }
-        return new Funding(id, Integer.toString(projectId), name);
+        var source = new UriWrapper(HTTPS, apiDomain)
+                         .addChild(cristinBasePath, cristinFundingSourcesPath, NFR_SOURCE)
+                         .getUri();
+        return new Funding(source, id, Integer.toString(projectId), name);
     }
 
     @JacocoGenerated
