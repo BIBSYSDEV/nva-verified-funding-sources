@@ -83,6 +83,9 @@ public class FetchNfrFundingByIdentifierHandlerTest {
         var nfrFunding = stubber.getMatchingEntryFromNfr(projectId);
         assertThat(funding.getName().get("en"), is(equalTo(nfrFunding.getEnglishMetadata().get("title"))));
         assertThat(funding.getName().get("nb"), is(equalTo(nfrFunding.getNorwegianMetadata().get("title"))));
+        assertThat(funding.getLead(), is(equalTo(nfrFunding.getLeadName())));
+        assertThat(funding.getActiveFrom(), is(equalTo(nfrFunding.getActiveFrom())));
+        assertThat(funding.getActiveTo(), is(equalTo(nfrFunding.getActiveTo())));
     }
 
     @Test

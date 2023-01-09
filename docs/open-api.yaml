@@ -169,6 +169,17 @@ components:
           type: string
         name:
           $ref: '#/components/schemas/Languages'
+        lead:
+          type: string
+          description: 'Full name of person that is lead for this funding'
+        activeFrom:
+          type: string
+          format: date-time
+          description: 'The funding is active from this timestamp'
+        activeTo:
+          type: string
+          format: date-time
+          description: 'The funding is active to this timestamp'
 
     SearchResult:
       type: object
@@ -230,6 +241,9 @@ components:
             identifier: '318142'
             name:
               nb: 'OmniSense 123'
+            lead: 'Ola Nordmann'
+            activeFrom: '2020-08-31T22:00:00.000Z'
+            activeTo: '2022-12-30T23:00:00.000Z'
 
     Funding:
       value:
@@ -237,3 +251,6 @@ components:
         identifier: '318142'
         name:
           nb: 'OmniSense 123'
+        lead: 'Ola Nordmann'
+        activeFrom: '2020-08-31T22:00:00.000Z'
+        activeTo: '2022-12-30T23:00:00.000Z'
