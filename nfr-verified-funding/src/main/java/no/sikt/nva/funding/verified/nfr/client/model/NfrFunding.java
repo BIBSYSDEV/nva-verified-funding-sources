@@ -84,7 +84,14 @@ public final class NfrFunding {
         var source = new UriWrapper(HTTPS, apiDomain)
                          .addChild(cristinBasePath, cristinFundingSourcesPath, NFR_SOURCE)
                          .getUri();
-        return new Funding(source, id, Integer.toString(projectId), name);
+
+        return new Funding(source,
+                           id,
+                           Integer.toString(projectId),
+                           name,
+                           getLeadName(),
+                           getActiveFrom(),
+                           getActiveTo());
     }
 
     @JacocoGenerated
