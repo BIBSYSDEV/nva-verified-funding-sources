@@ -12,7 +12,7 @@ public class Funding {
     private static final String SOURCE_FIELD = "source";
     private static final String ID_FIELD = "id";
     private static final String IDENTIFIER_FIELD = "identifier";
-    private static final String NAME_FIELD = "name";
+    private static final String LABELS_FIELD = "labels";
     private static final String LEAD_FIELD = "lead";
     private static final String ACTIVE_FROM_FIELD = "activeFrom";
     private static final String ACTIVE_TO_FIELD = "activeTo";
@@ -28,8 +28,8 @@ public class Funding {
     private final URI id;
     @JsonProperty(IDENTIFIER_FIELD)
     private final String identifier;
-    @JsonProperty(NAME_FIELD)
-    private final Map<String, String> name;
+    @JsonProperty(LABELS_FIELD)
+    private final Map<String, String> labels;
     @JsonProperty(LEAD_FIELD)
     private final String lead;
     @JsonProperty(ACTIVE_FROM_FIELD)
@@ -41,14 +41,14 @@ public class Funding {
     public Funding(@JsonProperty(SOURCE_FIELD) URI source,
                    @JsonProperty(ID_FIELD) URI id,
                    @JsonProperty(IDENTIFIER_FIELD) String identifier,
-                   @JsonProperty(NAME_FIELD) Map<String, String> name,
+                   @JsonProperty(LABELS_FIELD) Map<String, String> labels,
                    @JsonProperty(LEAD_FIELD) String lead,
                    @JsonProperty(ACTIVE_FROM_FIELD) Instant activeFrom,
                    @JsonProperty(ACTIVE_TO_FIELD) Instant activeTo) {
         this.source = source;
         this.id = id;
         this.identifier = identifier;
-        this.name = name;
+        this.labels = labels;
         this.lead = lead;
         this.activeFrom = activeFrom;
         this.activeTo = activeTo;
@@ -66,8 +66,8 @@ public class Funding {
         return identifier;
     }
 
-    public Map<String, String> getName() {
-        return name;
+    public Map<String, String> getLabels() {
+        return labels;
     }
 
     public String getLead() {
