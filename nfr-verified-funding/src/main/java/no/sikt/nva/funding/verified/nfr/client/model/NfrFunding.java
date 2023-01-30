@@ -74,12 +74,12 @@ public final class NfrFunding {
                              final String cristinFundingSourcesPath) {
         var identifier = Integer.toString(projectId);
         var id = new UriWrapper(HTTPS, apiDomain).addChild(basePath, "nfr", identifier).getUri();
-        var name = new ConcurrentHashMap<String, String>();
+        var labels = new ConcurrentHashMap<String, String>();
         if (englishMetadata.containsKey(TITLE_METADATA_KEY)) {
-            name.put(LANGUAGE_EN, englishMetadata.get(TITLE_METADATA_KEY));
+            labels.put(LANGUAGE_EN, englishMetadata.get(TITLE_METADATA_KEY));
         }
         if (norwegianMetadata.containsKey(TITLE_METADATA_KEY)) {
-            name.put(LANGUAGE_NB, norwegianMetadata.get(TITLE_METADATA_KEY));
+            labels.put(LANGUAGE_NB, norwegianMetadata.get(TITLE_METADATA_KEY));
         }
         var source = new UriWrapper(HTTPS, apiDomain)
                          .addChild(cristinBasePath, cristinFundingSourcesPath, NFR_SOURCE)
@@ -88,7 +88,7 @@ public final class NfrFunding {
         return new Funding(source,
                            id,
                            Integer.toString(projectId),
-                           name,
+                           labels,
                            getLeadName(),
                            getActiveFrom(),
                            getActiveTo());
