@@ -31,7 +31,7 @@ paths:
         type: "AWS_PROXY"
       tags:
         - NfrVerifiedFundingSources
-      summary: Query NFR funding by identifier
+      summary: Query NFR fundings
       description: Returns fundings by a search query
       operationId: NfrQueryFundings
       parameters:
