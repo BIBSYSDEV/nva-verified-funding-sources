@@ -69,7 +69,8 @@ Resources:
       StageName: Prod
       Auth:
         DefaultAuthorizer: NONE
-      EndpointConfiguration: Regional
+      EndpointConfiguration:
+        Type: Regional
 
   LambdaRole:
     Type: AWS::IAM::Role
