@@ -1,10 +1,32 @@
 plugins{
-    id 'nva.verified.funding.sources.java-conventions'
-    id 'nva.verified.funding.sources.gradlelint'
-    id 'nva.verified.funding.sources.jacoco-merge'
+    id 'jacoco-report-aggregation'
+    id 'base'
+    id 'java-library'
 }
 
-allprojects {
-    //workaround for jacoco-merge to work
-    apply plugin: 'nva.verified.funding.sources.java-conventions'
+repositories {
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
+}
+
+dependencies {
+    subprojects.forEach {
+        jacocoAggregation it
+    }
+}
+
+reporting {
+    reports {
+        testCodeCoverageReport(JacocoCoverageReport) {
+            testType = TestSuiteType.UNIT_TEST
+        }
+        integrationTestCodeCoverageReport(JacocoCoverageReport) {
+            testType = TestSuiteType.INTEGRATION_TEST
+        }
+    }
+}
+
+tasks.named('check') {
+    dependsOn tasks.named('testCodeCoverageReport', JacocoReport)
+    dependsOn tasks.named('integrationTestCodeCoverageReport', JacocoReport)
 }

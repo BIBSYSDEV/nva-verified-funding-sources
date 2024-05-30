@@ -2,8 +2,7 @@ plugins {
     id 'java'
     id 'checkstyle'
     id 'pmd'
-    id 'jacoco'
-    id 'base'
+    id 'jacoco-report-aggregation'
 }
 
 group 'no.sikt.nva'
@@ -16,8 +15,10 @@ dependencies {
     implementation libs.slf4j.api
 }
 
-sourceCompatibility = JavaVersion.VERSION_11  // source-code version and must be <= targetCompatibility
-targetCompatibility = JavaVersion.VERSION_11 // bytecode target version
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
 
 repositories {
     mavenCentral()
@@ -25,19 +26,21 @@ repositories {
 }
 
 tasks.named('test') {
-    useJUnitPlatform()
+    environment "API_HOST", "localhost"
+    useJUnitPlatform {
+        excludeTags "RemoteTest", "integrationTest", "KarateTest"
+    }
     failFast = true
     testLogging {
         events 'skipped', 'passed', 'failed'
+        showCauses true
+        exceptionFormat "full"
     }
-    finalizedBy jacocoTestReport
 }
 
-test {
-}
 
 pmd {
-    toolVersion = '6.20.0'
+    toolVersion = '6.55.0'
     ruleSetConfig = rootProject.resources.text.fromFile('config/pmd/ruleset.xml')
     ruleSets = []
     ignoreFailures = false
@@ -48,10 +51,10 @@ checkstyle {
     showViolations = true
 }
 
-tasks.withType(Checkstyle) {
+tasks.withType(Checkstyle).configureEach{
     reports {
-        xml.enabled true
-        html.enabled true
+        xml.required
+        html.required
         html.stylesheet rootProject.resources.text.fromFile('config/checkstyle/checkstyle-simple.xsl')
     }
 }
