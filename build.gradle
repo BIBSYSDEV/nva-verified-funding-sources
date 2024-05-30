@@ -1,3 +1,9 @@
 plugins {
     id 'nva.verified.funding.sources.rootplugin'
 }
+
+//workaround for jacoco-merge to work
+allprojects{
+    apply plugin: 'nva.verified.funding.sources.java-conventions'
+    apply plugin: 'nva.verified.funding.sources.gradlelint'
+}
