@@ -30,7 +30,7 @@ paths:
         httpMethod: POST
         type: "AWS_PROXY"
       tags:
-        - NfrVerifiedFundingSources
+        - external
       summary: Query NFR fundings
       description: Returns fundings by a search query
       operationId: NfrQueryFundings
@@ -41,6 +41,8 @@ paths:
           required: false
           schema:
             type: string
+          style: form
+          explode: false
           example: 'Ola+Nordmann'
         - name: term
           in: query
@@ -48,6 +50,8 @@ paths:
           required: false
           schema:
             type: string
+          style: form
+          explode: false
           example: 'bio+research'
         - name: offset
           in: query
@@ -55,6 +59,8 @@ paths:
           required: false
           schema:
             type: integer
+          style: form
+          explode: false
           example: '0'
         - name: size
           in: query
@@ -62,6 +68,8 @@ paths:
           required: false
           schema:
             type: integer
+          style: form
+          explode: false
           example: 10
       responses:
         200:
@@ -94,7 +102,7 @@ paths:
         httpMethod: POST
         type: "AWS_PROXY"
       tags:
-        - NfrVerifiedFundingSources
+        - external
       summary: Get NFR funding by identifier
       description: Returns a funding  by identifier
       operationId: NfrGetFunding
