@@ -35,6 +35,11 @@ public class FetchNfrFundingByIdentifierHandler extends ApiGatewayHandler<Void, 
     }
 
     @Override
+    protected void validateRequest(Void unused, RequestInfo requestInfo, Context context) throws ApiGatewayException {
+        //Do nothing
+    }
+
+    @Override
     protected Funding processInput(Void input, RequestInfo requestInfo, Context context)
         throws ApiGatewayException {
 
