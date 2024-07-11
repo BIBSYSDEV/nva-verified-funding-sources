@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import no.sikt.nva.funding.verified.nfr.client.model.NfrFunding;
 import no.sikt.nva.funding.verified.nfr.client.model.NfrFundingSearchResult;
+import nva.commons.core.paths.UriWrapper;
 
 public class NfrApiStubber {
 
@@ -97,7 +98,10 @@ public class NfrApiStubber {
         var totalHits = numberOfMatchesByName + numberOfAdditionalMatches;
         var responseObject = new NfrFundingSearchResult(totalHits, from, size, matches);
 
-        var url = "/search?query=" + URLEncoder.encode(leadName, StandardCharsets.UTF_8)
+        var url = "/search?query=" +  URLEncoder.encode(leadName, StandardCharsets.UTF_8)
+                                         .replace("+", "%2B")
+                                         .replace("&", "%26")
+                                         .replace(",","%2C")
                   + "&from=" + from
                   + "&size=" + size;
 

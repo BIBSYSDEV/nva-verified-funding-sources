@@ -45,6 +45,11 @@ public class QueryNfrFundingsHandler extends ApiGatewayHandler<Void, PagedSearch
     }
 
     @Override
+    protected void validateRequest(Void unused, RequestInfo requestInfo, Context context) throws ApiGatewayException {
+        //Do nothing
+    }
+
+    @Override
     protected PagedSearchResult<Funding> processInput(Void input, RequestInfo requestInfo, Context context)
         throws ApiGatewayException {
 
