@@ -16,13 +16,13 @@ import java.util.Map;
 import no.unit.nva.commons.json.JsonUtils;
 import org.junit.jupiter.api.Test;
 
-public class PagedSearchResultTest {
+class PagedSearchResultTest {
 
     private static final URI CONTEXT = randomUri();
     private static final URI BASE_URI = URI.create("https://localhost");
 
     @Test
-    public void shouldPopulateContextIdTotalHitsAndHitsAlways() {
+    void shouldPopulateContextIdTotalHitsAndHitsAlways() {
         var result = new PagedSearchResult<>(CONTEXT, BASE_URI, 0, 5, 0, Collections.emptyList());
 
         assertThat(result.getContext(), is(equalTo(CONTEXT)));
@@ -32,7 +32,7 @@ public class PagedSearchResultTest {
     }
 
     @Test
-    public void shouldNotPopulateNextAndPreviousResultsOnEmptyResult() {
+    void shouldNotPopulateNextAndPreviousResultsOnEmptyResult() {
         var result = new PagedSearchResult<>(CONTEXT, BASE_URI, 0, 5, 0, Collections.emptyList());
 
         assertThat(result.getNextResults(), nullValue());
@@ -40,7 +40,7 @@ public class PagedSearchResultTest {
     }
 
     @Test
-    public void shouldPopulateNextResultsWhenMoreHitsAreAvailable() {
+    void shouldPopulateNextResultsWhenMoreHitsAreAvailable() {
         var result = new PagedSearchResult<>(CONTEXT, BASE_URI, 0, 1, 2, List.of(randomString()));
 
         var expectedNextResults = URI.create("https://localhost?offset=1&size=1");
@@ -49,7 +49,7 @@ public class PagedSearchResultTest {
     }
 
     @Test
-    public void shouldPopulatePreviousResultWhenThereArePreviousResults() {
+    void shouldPopulatePreviousResultWhenThereArePreviousResults() {
         var result = new PagedSearchResult<>(CONTEXT, BASE_URI, 1, 1, 2, List.of(randomString()));
 
         assertThat(result.getNextResults(), nullValue());
@@ -59,7 +59,7 @@ public class PagedSearchResultTest {
     }
 
     @Test
-    public void shouldPopulateBothNextAndPreviousResultWhenApplicable() {
+    void shouldPopulateBothNextAndPreviousResultWhenApplicable() {
         var querySize = 5;
         var hits = generateRandomHits(querySize);
         var result = new PagedSearchResult<>(CONTEXT, BASE_URI, 10, 5, 50, hits);
@@ -75,7 +75,7 @@ public class PagedSearchResultTest {
     }
 
     @Test
-    public void shouldSupportOffsetThatIsNotFullPageSizes() {
+    void shouldSupportOffsetThatIsNotFullPageSizes() {
         var hits = List.of(randomString(), randomString());
         var result = new PagedSearchResult<>(CONTEXT, BASE_URI, 1, 3, 3, hits);
 
