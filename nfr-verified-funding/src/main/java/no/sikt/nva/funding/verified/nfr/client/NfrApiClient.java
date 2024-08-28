@@ -3,12 +3,10 @@ package no.sikt.nva.funding.verified.nfr.client;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
-import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
-import java.nio.charset.StandardCharsets;
 import no.sikt.nva.funding.verified.nfr.EnvironmentKeys;
 import no.sikt.nva.funding.verified.nfr.client.model.NfrFundingSearchResult;
 import no.unit.nva.commons.json.JsonUtils;
@@ -40,7 +38,7 @@ public class NfrApiClient {
     public NfrFundingSearchResult query(String query, int offset, int size) throws BadGatewayException {
         URI requestUri = UriWrapper.fromUri(baseUri)
                              .addChild("search")
-                             .addQueryParameter("query", URLEncoder.encode(query, StandardCharsets.UTF_8))
+                             .addQueryParameter("query", query)
                              .addQueryParameter("from", Integer.toString(offset))
                              .addQueryParameter("size", Integer.toString(size))
                              .getUri();

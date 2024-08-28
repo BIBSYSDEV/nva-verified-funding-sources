@@ -11,6 +11,7 @@ import static org.hamcrest.collection.IsIterableWithSize.iterableWithSize;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsIterableContaining.hasItems;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -20,6 +21,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -39,7 +43,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.zalando.problem.Problem;
 
 @WireMockTest(httpsEnabled = true)
-public class QueryNfrFundingsHandlerTest {
+class QueryNfrFundingsHandlerTest {
 
     private final Context context = new FakeContext();
     private QueryNfrFundingsHandler handlerUnderTest;
@@ -63,7 +67,7 @@ public class QueryNfrFundingsHandlerTest {
     }
 
     @Test
-    public void shouldUseOnlyNameQueryParameterIfCombinedWithTermQueryParameter() throws IOException {
+    void shouldUseOnlyNameQueryParameterIfCombinedWithTermQueryParameter() throws IOException {
         var numberOfMatchesByName = 2;
         var numberOfAdditionalMatches = 2;
         var from = 0;
@@ -107,7 +111,7 @@ public class QueryNfrFundingsHandlerTest {
     }
 
     @Test
-    public void shouldUseTermParameterIfPresent() throws IOException {
+    void shouldUseTermParameterIfPresent() throws IOException {
         var from = 0;
         var size = 10;
         var noTermMatches = 3;
@@ -147,7 +151,7 @@ public class QueryNfrFundingsHandlerTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"-10", "0"})
-    public void nonPositiveSizeShouldGiveBadRequest(String size) throws IOException {
+    void nonPositiveSizeShouldGiveBadRequest(String size) throws IOException {
         var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
                         .withQueryParameters(Map.of(
                             "term", randomString(),
@@ -167,7 +171,7 @@ public class QueryNfrFundingsHandlerTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"111111111111111111111111", "1a1b1c"})
-    public void nonIntegerSizeShouldGiveBadRequest(String size) throws IOException {
+    void nonIntegerSizeShouldGiveBadRequest(String size) throws IOException {
         var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
                         .withQueryParameters(Map.of(
                             "term", randomString(),
@@ -187,7 +191,7 @@ public class QueryNfrFundingsHandlerTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"-10", "-1"})
-    public void nonZeroOrPositiveOffsetShouldGiveBadRequest(String offset) throws IOException {
+    void nonZeroOrPositiveOffsetShouldGiveBadRequest(String offset) throws IOException {
         var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
                         .withQueryParameters(Map.of(
                             "term", randomString(),
@@ -207,7 +211,7 @@ public class QueryNfrFundingsHandlerTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"111111111111111111111111", "1a1b1c"})
-    public void nonIntegerOffsetShouldGiveBadRequest(String offset) throws IOException {
+    void nonIntegerOffsetShouldGiveBadRequest(String offset) throws IOException {
         var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
                         .withQueryParameters(Map.of(
                             "term", randomString(),
@@ -226,7 +230,7 @@ public class QueryNfrFundingsHandlerTest {
     }
 
     @Test
-    public void missingBothNameAndTermQueryParamShouldGiveBadRequest() throws IOException {
+    void missingBothNameAndTermQueryParamShouldGiveBadRequest() throws IOException {
         var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
                         .withQueryParameters(Map.of(
                             "offset", "0",
@@ -241,5 +245,27 @@ public class QueryNfrFundingsHandlerTest {
 
         var problem = dtoObjectMapper.readValue(response.getBody(), Problem.class);
         assertThat(problem.getDetail(), is(equalTo("Missing from query parameters: term")));
+    }
+
+    @Test
+    void shouldEncodeQueryParametersCorrectly() throws IOException, InterruptedException {
+        var httpClient = mock(HttpClient.class);
+        var apiClient = new NfrApiClient(httpClient, URI.create("https://example.org"));
+        handlerUnderTest = new QueryNfrFundingsHandler(environment, apiClient);
+
+        var paalUnencoded = "Pål";
+        final var paalEncoded = "P%C3%A5l";
+
+        var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
+                        .withQueryParameters(Map.of("term", paalUnencoded,
+                                                    "offset", "0",
+                                                    "size", "10"))
+                        .build();
+        handlerUnderTest.handleRequest(input, output, context);
+        var expectedRequest = HttpRequest.newBuilder()
+                      .uri(URI.create("https://example.org/search?query=" + paalEncoded + "&from=0&size=10"))
+                      .GET()
+                      .build();
+        verify(httpClient).send(expectedRequest, BodyHandlers.ofString());
     }
 }
