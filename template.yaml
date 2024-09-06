@@ -143,5 +143,34 @@ Resources:
       RestApiId: !Ref NvaVerifiedFundingSourcesApi
       Stage: !Ref NvaVerifiedFundingSourcesApi.Stage
 
+  ProjectBankHealthCheck:
+    Type: AWS::Route53::HealthCheck
+    Properties:
+      HealthCheckConfig:
+        Port: 443
+        Type: HTTPS
+        ResourcePath: /prosjektbanken/rest/cristin/search?query=healthcheck
+        FullyQualifiedDomainName: prosjektbanken.forskningsradet.no
+        RequestInterval: 30
+        FailureThreshold: 2
+        EnableSNI: true
 
-
+  ProjectBankHealthAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub External-NFR-ProjectBank-API-HealthCheck-${NvaVerifiedFundingSourcesApi} # NvaVerifiedFundingSourcesApi is here just to make the name unique
+      AlarmDescription: Check if external NFR ProjectBank API is healthy
+      Namespace: AWS/Route53
+      MetricName: HealthCheckStatus
+      Dimensions:
+        - Name: HealthCheckId
+          Value: !GetAtt ProjectBankHealthCheck.HealthCheckId
+      Statistic: Minimum
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: LessThanThreshold
+      AlarmActions:
+        - !Ref SlackSnsArn
+      TreatMissingData: notBreaching
