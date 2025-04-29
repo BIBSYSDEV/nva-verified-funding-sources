@@ -49,6 +49,7 @@ public class PagedSearchResult<T> {
     @JsonProperty(HITS_FIELD_NAME)
     private final List<T> hits;
 
+    @SuppressWarnings("PMD.LawOfDemeter")
     public PagedSearchResult(URI context,
                              URI baseUri,
                              int queryOffset,
@@ -107,13 +108,11 @@ public class PagedSearchResult<T> {
     }
 
     private static URI calculateNextResults(int queryOffset, int querySize, int totalSize, int noHits, URI baseUri) {
-        if ((queryOffset + noHits) < totalSize) {
-            return generateSelfUri(baseUri, queryOffset + querySize, querySize);
-        } else {
-            return null;
-        }
+        return (queryOffset + noHits) < totalSize ? generateSelfUri(baseUri, queryOffset + querySize, querySize)
+                   : null;
     }
 
+    @SuppressWarnings("PMD.OnlyOneReturn")
     private static URI calculatePreviousResults(int queryOffset,
                                                 int querySize,
                                                 URI baseUri) {

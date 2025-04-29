@@ -4,7 +4,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import nva.commons.apigateway.exceptions.BadGatewayException;
 
-public class TestClient {
+@SuppressWarnings({"PMD.CloseResource", "PMD.SystemPrintln"})
+public class RunClient {
 
     public static void main(String[] args) throws BadGatewayException {
         var httpClient = HttpClient.newBuilder().build();

@@ -28,7 +28,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import no.sikt.nva.funding.verified.nfr.client.NfrApiClient;
 import no.sikt.nva.funding.verified.nfr.client.model.NfrFunding;
 import no.sikt.nva.funding.verified.nfr.model.Funding;
@@ -44,9 +43,14 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.zalando.problem.Problem;
 
+@SuppressWarnings("PMD.CloseResource")
 @WireMockTest(httpsEnabled = true)
 class QueryNfrFundingsHandlerTest {
 
+    private static final String TERM = "term";
+    private static final String NAME = "name";
+    private static final String OFFSET = "offset";
+    private static final String SIZE = "size";
     private final Context context = new FakeContext();
     private QueryNfrFundingsHandler handlerUnderTest;
     private NfrApiStubber stubber;
@@ -54,7 +58,7 @@ class QueryNfrFundingsHandlerTest {
     private Environment environment;
 
     @BeforeEach
-    public void setup(WireMockRuntimeInfo runtimeInfo) {
+    void setup(WireMockRuntimeInfo runtimeInfo) {
         this.environment = mock(Environment.class);
 
         when(environment.readEnv(API_DOMAIN)).thenReturn("localhost");
@@ -84,10 +88,10 @@ class QueryNfrFundingsHandlerTest {
 
         var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
                         .withQueryParameters(Map.of(
-                            "name", leadName,
-                            "term", "abc",
-                            "offset", Integer.toString(from),
-                            "size", Integer.toString(size)))
+                            NAME, leadName,
+                            TERM, "abc",
+                            OFFSET, Integer.toString(from),
+                            SIZE, Integer.toString(size)))
                         .build();
 
         handlerUnderTest.handleRequest(input, output, context);
@@ -106,7 +110,7 @@ class QueryNfrFundingsHandlerTest {
                                      .map(NfrFunding::getProjectId).toArray(Integer[]::new);
         var actualProjectIds = hits.stream()
                                    .map(funding -> Integer.parseInt(funding.getIdentifier()))
-                                   .collect(Collectors.toList());
+                                   .toList();
 
         assertThat(searchResult.getTotalSize(), is(equalTo(numberOfMatchesByName)));
 
@@ -124,9 +128,9 @@ class QueryNfrFundingsHandlerTest {
 
         var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
                         .withQueryParameters(Map.of(
-                            "term", term,
-                            "offset", Integer.toString(from),
-                            "size", Integer.toString(size)))
+                            TERM, term,
+                            OFFSET, Integer.toString(from),
+                            SIZE, Integer.toString(size)))
                         .build();
 
         handlerUnderTest.handleRequest(input, output, context);
@@ -145,7 +149,7 @@ class QueryNfrFundingsHandlerTest {
                                      .map(NfrFunding::getProjectId).toArray(Integer[]::new);
         var actualProjectIds = hits.stream()
                                    .map(funding -> Integer.parseInt(funding.getIdentifier()))
-                                   .collect(Collectors.toList());
+                                   .toList();
 
         assertThat(searchResult.getTotalSize(), is(equalTo(noTermMatches)));
 
@@ -158,9 +162,9 @@ class QueryNfrFundingsHandlerTest {
     void nonPositiveSizeShouldGiveBadRequest(String size) throws IOException {
         var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
                         .withQueryParameters(Map.of(
-                            "term", randomString(),
-                            "offset", "0",
-                            "size", size))
+                            TERM, randomString(),
+                            OFFSET, "0",
+                            SIZE, size))
                         .build();
 
         handlerUnderTest.handleRequest(input, output, context);
@@ -178,9 +182,9 @@ class QueryNfrFundingsHandlerTest {
     void nonIntegerSizeShouldGiveBadRequest(String size) throws IOException {
         var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
                         .withQueryParameters(Map.of(
-                            "term", randomString(),
-                            "offset", "0",
-                            "size", size))
+                            TERM, randomString(),
+                            OFFSET, "0",
+                            SIZE, size))
                         .build();
 
         handlerUnderTest.handleRequest(input, output, context);
@@ -198,9 +202,9 @@ class QueryNfrFundingsHandlerTest {
     void nonZeroOrPositiveOffsetShouldGiveBadRequest(String offset) throws IOException {
         var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
                         .withQueryParameters(Map.of(
-                            "term", randomString(),
-                            "offset", offset,
-                            "size", "10"))
+                            TERM, randomString(),
+                            OFFSET, offset,
+                            SIZE, "10"))
                         .build();
 
         handlerUnderTest.handleRequest(input, output, context);
@@ -218,9 +222,9 @@ class QueryNfrFundingsHandlerTest {
     void nonIntegerOffsetShouldGiveBadRequest(String offset) throws IOException {
         var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
                         .withQueryParameters(Map.of(
-                            "term", randomString(),
-                            "offset", offset,
-                            "size", "10"))
+                            TERM, randomString(),
+                            OFFSET, offset,
+                            SIZE, "10"))
                         .build();
 
         handlerUnderTest.handleRequest(input, output, context);
@@ -237,8 +241,8 @@ class QueryNfrFundingsHandlerTest {
     void missingBothNameAndTermQueryParamShouldGiveBadRequest() throws IOException {
         var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
                         .withQueryParameters(Map.of(
-                            "offset", "0",
-                            "size", "10"))
+                            OFFSET, "0",
+                            SIZE, "10"))
                         .build();
 
         handlerUnderTest.handleRequest(input, output, context);
@@ -261,9 +265,9 @@ class QueryNfrFundingsHandlerTest {
         final var paalEncoded = "P%C3%A5l";
 
         var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
-                        .withQueryParameters(Map.of("term", paalUnencoded,
-                                                    "offset", "0",
-                                                    "size", "10"))
+                        .withQueryParameters(Map.of(TERM, paalUnencoded,
+                                                    OFFSET, "0",
+                                                    SIZE, "10"))
                         .build();
         handlerUnderTest.handleRequest(input, output, context);
         var expectedRequest = HttpRequest.newBuilder()

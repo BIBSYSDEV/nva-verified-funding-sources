@@ -3,5 +3,6 @@ dependencies {
     implementation libs.bundles.jackson
     implementation libs.bundles.others
 
+    testImplementation libs.wiremock
     testImplementation libs.bundles.testing
 }
