@@ -2,6 +2,8 @@ package no.sikt.nva.funding.verified.nfr.handlers;
 
 import static no.sikt.nva.funding.verified.nfr.EnvironmentKeys.ALLOWED_ORIGIN;
 import static no.sikt.nva.funding.verified.nfr.EnvironmentKeys.API_DOMAIN;
+import static no.sikt.nva.funding.verified.nfr.EnvironmentKeys.API_HOST;
+import static no.sikt.nva.funding.verified.nfr.EnvironmentKeys.COGNITO_AUTHORIZER_URLS;
 import static no.sikt.nva.funding.verified.nfr.EnvironmentKeys.CUSTOM_DOMAIN_NAME_PATH;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
@@ -58,6 +60,8 @@ class QueryNfrFundingsHandlerTest {
         when(environment.readEnv(API_DOMAIN)).thenReturn("localhost");
         when(environment.readEnv(ALLOWED_ORIGIN)).thenReturn("*");
         when(environment.readEnv(CUSTOM_DOMAIN_NAME_PATH)).thenReturn("verified-funding");
+        when(environment.readEnv(API_HOST)).thenReturn("localhost");
+        when(environment.readEnv(COGNITO_AUTHORIZER_URLS)).thenReturn("http://localhost:3000");
 
         var httpClient = WiremockHttpClient.create();
         var apiClient = new NfrApiClient(httpClient, URI.create(runtimeInfo.getHttpsBaseUrl()));

@@ -16,6 +16,8 @@ Globals:
       Variables:
         ALLOWED_ORIGIN: !Ref AllowedOrigins
         API_DOMAIN: !Ref ApiDomain
+        API_HOST: !Ref ApiDomain
+        COGNITO_AUTHORIZER_URLS: !Join [",", !Ref CognitoAuthorizerUrls]
         CUSTOM_DOMAIN_NAME_PATH: !Ref CustomDomainBasePath
         CRISTIN_BASE_PATH: !Ref CristinBasePath
         CRISTIN_FUNDING_SOURCES_PATH: !Ref CristinFundingSourcesPath
@@ -56,6 +58,9 @@ Parameters:
   SlackSnsArn:
     Type: AWS::SSM::Parameter::Value<String>
     Default: '/NVA/Monitoring/SlackSnsArn'
+  CognitoAuthorizerUrls:
+    Type: AWS::SSM::Parameter::Value<CommaDelimitedList>
+    Default: CognitoAuthorizerUrls
 
 Resources:
 
