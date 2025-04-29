@@ -21,12 +21,10 @@ import no.sikt.nva.funding.verified.nfr.client.model.NfrFundingSearchResult;
 public class NfrApiStubber {
 
     private static final String SPACE = " ";
+    private static final String APPLICATION_JSON_CHARSET_UTF_8 = "application/json;charset=utf-8";
+    private static final String CONTENT_TYPE = "Content-Type";
     private final Map<Integer, NfrFunding> exactMatchByProjectId = new ConcurrentHashMap<>();
     private final Map<String, List<NfrFunding>> exactMatchesByLeadName = new ConcurrentHashMap<>();
-
-    public NfrApiStubber() {
-        // no-op
-    }
 
     public int byProjectIdSingleMatch(int totalHits) {
         var projectId = randomInteger();
@@ -35,15 +33,19 @@ public class NfrApiStubber {
                                                         generateSingleHitMultipleCandidates(projectId,
                                                                                             totalHits - 1));
 
-        var url = "/search?query=" + projectId + "&from=0&size=10";
+        var url = getSearchPath(projectId);
 
         attempt(() -> stubFor(get(url)
                                   .willReturn(aResponse()
-                                                  .withHeader("Content-Type",
-                                                              "application/json;charset=utf-8")
+                                                  .withHeader(CONTENT_TYPE,
+                                                              APPLICATION_JSON_CHARSET_UTF_8)
                                                   .withBody(dtoObjectMapper.writeValueAsString(responseObject))
                                                   .withStatus(HttpURLConnection.HTTP_OK)))).orElseThrow();
         return projectId;
+    }
+
+    private static String getSearchPath(Integer projectId) {
+        return "/search?query=" + projectId + "&from=0&size=10";
     }
 
     public int byProjectIdNoExactMatch(int totalHits) {
@@ -53,12 +55,12 @@ public class NfrApiStubber {
                                                         generateNoHitsMultipleCandidates(projectId,
                                                                                          totalHits));
 
-        var url = "/search?query=" + projectId + "&from=0&size=10";
+        var url = getSearchPath(projectId);
 
         attempt(() -> stubFor(get(url)
                                   .willReturn(aResponse()
-                                                  .withHeader("Content-Type",
-                                                              "application/json;charset=utf-8")
+                                                  .withHeader(CONTENT_TYPE,
+                                                              APPLICATION_JSON_CHARSET_UTF_8)
                                                   .withBody(dtoObjectMapper.writeValueAsString(responseObject))
                                                   .withStatus(HttpURLConnection.HTTP_OK)))).orElseThrow();
         return projectId;
@@ -67,12 +69,12 @@ public class NfrApiStubber {
     public int byProjectIdBadRequest() {
         var projectId = randomInteger();
 
-        var url = "/search?query=" + projectId + "&from=0&size=10";
+        var url = getSearchPath(projectId);
 
         attempt(() -> stubFor(get(url)
                                   .willReturn(aResponse()
-                                                  .withHeader("Content-Type",
-                                                              "application/json;charset=utf-8")
+                                                  .withHeader(CONTENT_TYPE,
+                                                              APPLICATION_JSON_CHARSET_UTF_8)
                                                   .withBody(dtoObjectMapper.writeValueAsString("{}"))
                                                   .withStatus(HttpURLConnection.HTTP_BAD_REQUEST)))).orElseThrow();
         return projectId;
@@ -106,8 +108,8 @@ public class NfrApiStubber {
 
         attempt(() -> stubFor(get(url)
                                   .willReturn(aResponse()
-                                                  .withHeader("Content-Type",
-                                                              "application/json;charset=utf-8")
+                                                  .withHeader(CONTENT_TYPE,
+                                                              APPLICATION_JSON_CHARSET_UTF_8)
                                                   .withBody(dtoObjectMapper.writeValueAsString(responseObject))
                                                   .withStatus(HttpURLConnection.HTTP_OK)))).orElseThrow();
 
@@ -128,8 +130,8 @@ public class NfrApiStubber {
 
         attempt(() -> stubFor(get(url)
                                   .willReturn(aResponse()
-                                                  .withHeader("Content-Type",
-                                                              "application/json;charset=utf-8")
+                                                  .withHeader(CONTENT_TYPE,
+                                                              APPLICATION_JSON_CHARSET_UTF_8)
                                                   .withBody(dtoObjectMapper.writeValueAsString(responseObject))
                                                   .withStatus(HttpURLConnection.HTTP_OK)))).orElseThrow();
 

@@ -7,13 +7,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.collection.IsEmptyIterable.emptyIterable;
 import static org.hamcrest.core.IsNull.nullValue;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import no.unit.nva.commons.json.JsonUtils;
 import org.junit.jupiter.api.Test;
 
 class PagedSearchResultTest {

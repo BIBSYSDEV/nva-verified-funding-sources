@@ -32,9 +32,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.zalando.problem.Problem;
 
+@SuppressWarnings({"PMD.CloseResource", "PMD.SystemPrintln", "PMD.UnitTestShouldIncludeAssert"})
 @WireMockTest(httpsEnabled = true)
-public class FetchNfrFundingByIdentifierHandlerTest {
+class FetchNfrFundingByIdentifierHandlerTest {
 
+    private static final String IDENTIFIER = "identifier";
     private final Context context = new FakeContext();
     private FetchNfrFundingByIdentifierHandler handlerUnderTest;
     private NfrApiStubber stubber;
@@ -42,7 +44,7 @@ public class FetchNfrFundingByIdentifierHandlerTest {
     private Environment environment;
 
     @BeforeEach
-    public void setup(WireMockRuntimeInfo runtimeInfo) {
+    void setup(WireMockRuntimeInfo runtimeInfo) {
         this.environment = mock(Environment.class);
 
         when(environment.readEnv(API_DOMAIN)).thenReturn("localhost");
@@ -61,12 +63,12 @@ public class FetchNfrFundingByIdentifierHandlerTest {
     }
 
     @Test
-    public void shouldReturnOnlyOneMatchWhenQueryReturnsMultipleButOnlyOneHasExactMatchOnProjectId()
+    void shouldReturnOnlyOneMatchWhenQueryReturnsMultipleButOnlyOneHasExactMatchOnProjectId()
         throws IOException {
         var projectId = stubber.byProjectIdSingleMatch(2);
 
         var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
-                        .withPathParameters(Map.of("identifier", Integer.toString(projectId)))
+                        .withPathParameters(Map.of(IDENTIFIER, Integer.toString(projectId)))
                         .build();
 
         handlerUnderTest.handleRequest(input, output, context);
@@ -93,12 +95,12 @@ public class FetchNfrFundingByIdentifierHandlerTest {
     }
 
     @Test
-    public void shouldReturnNotFoundStatusCodeWhenNotFoundButCandidatesArePresent()
+    void shouldReturnNotFoundStatusCodeWhenNotFoundButCandidatesArePresent()
         throws IOException {
         var projectId = stubber.byProjectIdNoExactMatch(2);
 
         var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
-                        .withPathParameters(Map.of("identifier", Integer.toString(projectId)))
+                        .withPathParameters(Map.of(IDENTIFIER, Integer.toString(projectId)))
                         .build();
 
         handlerUnderTest.handleRequest(input, output, context);
@@ -112,11 +114,11 @@ public class FetchNfrFundingByIdentifierHandlerTest {
     }
 
     @Test
-    public void shouldReturnNotFoundStatusCodeWhenNotFoundAndCandidatesAreNotPresent() throws IOException {
+    void shouldReturnNotFoundStatusCodeWhenNotFoundAndCandidatesAreNotPresent() throws IOException {
         var projectId = stubber.byProjectIdNoExactMatch(0);
 
         var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
-                        .withPathParameters(Map.of("identifier", Integer.toString(projectId)))
+                        .withPathParameters(Map.of(IDENTIFIER, Integer.toString(projectId)))
                         .build();
 
         handlerUnderTest.handleRequest(input, output, context);
@@ -130,7 +132,7 @@ public class FetchNfrFundingByIdentifierHandlerTest {
     }
 
     @Test
-    public void shouldReturnBadGatewayOnNonSuccessStatusCodeFromNfrApi()
+    void shouldReturnBadGatewayOnNonSuccessStatusCodeFromNfrApi()
         throws IOException {
 
         var projectId = stubber.byProjectIdBadRequest();
@@ -139,7 +141,7 @@ public class FetchNfrFundingByIdentifierHandlerTest {
     }
 
     @Test
-    public void shouldReturnBadGatewayWhenUnableToConnectToNfrApi(WireMockRuntimeInfo runtimeInfo)
+    void shouldReturnBadGatewayWhenUnableToConnectToNfrApi(WireMockRuntimeInfo runtimeInfo)
         throws IOException {
 
         var httpClient = WiremockHttpClient.create();
@@ -153,9 +155,9 @@ public class FetchNfrFundingByIdentifierHandlerTest {
     }
 
     @Test
-    public void shouldReturnBadRequestWhenIdentifierPathParameterIsNotAnInteger() throws IOException {
+    void shouldReturnBadRequestWhenIdentifierPathParameterIsNotAnInteger() throws IOException {
         var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
-                        .withPathParameters(Map.of("identifier", "abc"))
+                        .withPathParameters(Map.of(IDENTIFIER, "abc"))
                         .build();
 
         handlerUnderTest.handleRequest(input, output, context);
@@ -170,7 +172,7 @@ public class FetchNfrFundingByIdentifierHandlerTest {
 
     private void shouldReturnBadGatewayWithProblemDetail(int projectId, String detail) throws IOException {
         var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
-                        .withPathParameters(Map.of("identifier", Integer.toString(projectId)))
+                        .withPathParameters(Map.of(IDENTIFIER, Integer.toString(projectId)))
                         .build();
 
         handlerUnderTest.handleRequest(input, output, context);

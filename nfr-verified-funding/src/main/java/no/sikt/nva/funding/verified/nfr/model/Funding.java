@@ -22,7 +22,7 @@ public class Funding {
 
     @JsonProperty(TYPE_FIELD)
     @SuppressWarnings("unused")
-    private static final String type = "Funding";
+    private static final String TYPE = "Funding";
     private final URI source;
     @JsonProperty(ID_FIELD)
     private final URI id;

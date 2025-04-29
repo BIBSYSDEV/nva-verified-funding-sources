@@ -21,8 +21,8 @@ public class NfrApiClient {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NfrApiClient.class);
 
-    private final transient HttpClient httpClient;
-    private final transient URI baseUri;
+    private final HttpClient httpClient;
+    private final URI baseUri;
 
     @JacocoGenerated
     public static NfrApiClient defaultClient() {
