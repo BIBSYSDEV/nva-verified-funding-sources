@@ -21,6 +21,10 @@ servers:
   - url: https://api.sandbox.nva.aws.unit.no/verified-funding
   - url: https://api.test.nva.aws.unit.no/verified-funding
 
+tags:
+  - name: external
+    description: External API operations
+
 paths:
   /nfr:
     get:
@@ -61,7 +65,7 @@ paths:
             type: integer
           style: form
           explode: false
-          example: '0'
+          example: 0
         - name: size
           in: query
           description: The size of the result set to return. Default is 10.
@@ -72,7 +76,7 @@ paths:
           explode: false
           example: 10
       responses:
-        200:
+        '200':
           description: successful operation
           content:
             application/json:
@@ -87,11 +91,11 @@ paths:
               examples:
                 objectExample:
                   $ref: '#/components/examples/SearchResult'
-        400:
+        '400':
           $ref: '#/components/responses/400'
-        500:
+        '500':
           $ref: '#/components/responses/500'
-        502:
+        '502':
           $ref: '#/components/responses/502'
 
   /nfr/{identifier}:
@@ -115,7 +119,7 @@ paths:
             type: string
           example: '318142'
       responses:
-        200:
+        '200':
           description: successful operation
           content:
             application/json:
@@ -130,36 +134,36 @@ paths:
               examples:
                 objectExample:
                   $ref: '#/components/examples/Funding'
-        400:
+        '400':
           $ref: '#/components/responses/400'
-        404:
-          $ref: '#/components/responses/400'
-        500:
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
           $ref: '#/components/responses/500'
-        502:
+        '502':
           $ref: '#/components/responses/502'
 
 components:
   responses:
-    400:
+    '400':
       description: Bad Request
       content:
         application/problem+json:
           schema:
             $ref: '#/components/schemas/Problem'
-    404:
+    '404':
       description: Not found
       content:
         application/problem+json:
           schema:
             $ref: '#/components/schemas/Problem'
-    500:
+    '500':
       description: Internal Server Error
       content:
         application/problem+json:
           schema:
             $ref: '#/components/schemas/Problem'
-    502:
+    '502':
       description: Bad Gateway from upstream
       content:
         application/problem+json:
