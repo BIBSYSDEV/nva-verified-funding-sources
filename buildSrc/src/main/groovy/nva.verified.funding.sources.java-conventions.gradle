@@ -1,70 +1,23 @@
 plugins {
-    id 'java'
-    id 'pmd'
-    id 'jacoco-report-aggregation'
+    id 'nva.java-conventions'
 }
 
-group 'no.sikt.nva'
-version '1.0-SNAPSHOT'
-
-dependencies {
-    testImplementation libs.bundles.testing
-    implementation libs.bundles.nva
-    implementation libs.bundles.jackson
-    implementation libs.slf4j.api
-}
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
-}
-
-repositories {
-    mavenCentral()
-    maven { url 'https://jitpack.io' }
-}
-
-tasks.named('test') {
-    environment "API_HOST", "localhost"
-    useJUnitPlatform {
-        excludeTags "RemoteTest", "integrationTest", "KarateTest"
+nva {
+    errorprone {
+        allErrorsAsWarnings = false
     }
-    failFast = true
-    testLogging {
-        events 'skipped', 'passed', 'failed'
-        showCauses true
-        exceptionFormat "full"
+    java {
+        languageVersion = 21
+    }
+    pmd {
+        rulesetFile = rootProject.file('config/pmd/ruleset.xml')
+    }
+    spotless {
+        enabled = false // FIXME
     }
 }
 
 
 pmd {
     toolVersion = '7.13.0'
-    ruleSetConfig = rootProject.resources.text.fromFile('config/pmd/ruleset.xml')
-    ruleSets = []
-    ignoreFailures = false
-}
-
-check.dependsOn jacocoTestCoverageVerification
-jacocoTestCoverageVerification.dependsOn(jacocoTestReport)
-
-jacocoTestCoverageVerification {
-
-    violationRules {
-        rule {
-            limit {
-                counter = 'METHOD'
-                value = 'COVEREDRATIO'
-                minimum = 1.0
-            }
-        }
-
-        rule {
-            limit {
-                counter = 'CLASS'
-                value = 'COVEREDRATIO'
-                minimum = 1.0
-            }
-        }
-    }
 }
