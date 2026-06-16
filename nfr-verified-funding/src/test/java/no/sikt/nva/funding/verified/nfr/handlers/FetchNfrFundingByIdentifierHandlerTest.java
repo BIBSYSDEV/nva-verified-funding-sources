@@ -33,7 +33,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.zalando.problem.Problem;
 
-@SuppressWarnings({"PMD.CloseResource", "PMD.SystemPrintln", "PMD.UnitTestShouldIncludeAssert"})
+@SuppressWarnings({"PMD.CloseResource", "PMD.UnitTestShouldIncludeAssert"})
 @WireMockTest(httpsEnabled = true)
 class FetchNfrFundingByIdentifierHandlerTest {
 
