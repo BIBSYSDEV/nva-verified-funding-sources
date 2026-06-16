@@ -11,6 +11,6 @@ nva {
         minClassCoverage = 1.000
     }
     spotless {
-        enabled = false // FIXME
+        enabled = true
     }
 }
