@@ -16,8 +16,3 @@ nva {
         enabled = true
     }
 }
-
-
-pmd {
-    toolVersion = '7.13.0'
-}
