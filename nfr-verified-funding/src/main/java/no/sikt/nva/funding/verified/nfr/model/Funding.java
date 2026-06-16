@@ -8,77 +8,85 @@ import java.util.Map;
 
 public class Funding {
 
-    private static final String TYPE_FIELD = "type";
-    private static final String SOURCE_FIELD = "source";
-    private static final String ID_FIELD = "id";
-    private static final String IDENTIFIER_FIELD = "identifier";
-    private static final String LABELS_FIELD = "labels";
-    private static final String LEAD_FIELD = "lead";
-    private static final String ACTIVE_FROM_FIELD = "activeFrom";
-    private static final String ACTIVE_TO_FIELD = "activeTo";
+  private static final String TYPE_FIELD = "type";
+  private static final String SOURCE_FIELD = "source";
+  private static final String ID_FIELD = "id";
+  private static final String IDENTIFIER_FIELD = "identifier";
+  private static final String LABELS_FIELD = "labels";
+  private static final String LEAD_FIELD = "lead";
+  private static final String ACTIVE_FROM_FIELD = "activeFrom";
+  private static final String ACTIVE_TO_FIELD = "activeTo";
 
-    public static final String LANGUAGE_EN = "en";
-    public static final String LANGUAGE_NB = "nb";
+  public static final String LANGUAGE_EN = "en";
+  public static final String LANGUAGE_NB = "nb";
 
-    @JsonProperty(TYPE_FIELD)
-    @SuppressWarnings("unused")
-    private static final String TYPE = "Funding";
-    private final URI source;
-    @JsonProperty(ID_FIELD)
-    private final URI id;
-    @JsonProperty(IDENTIFIER_FIELD)
-    private final String identifier;
-    @JsonProperty(LABELS_FIELD)
-    private final Map<String, String> labels;
-    @JsonProperty(LEAD_FIELD)
-    private final String lead;
-    @JsonProperty(ACTIVE_FROM_FIELD)
-    private final Instant activeFrom;
-    @JsonProperty(ACTIVE_TO_FIELD)
-    private final Instant activeTo;
+  @JsonProperty(TYPE_FIELD)
+  @SuppressWarnings("unused")
+  private static final String TYPE = "Funding";
 
-    @JsonCreator
-    public Funding(@JsonProperty(SOURCE_FIELD) URI source,
-                   @JsonProperty(ID_FIELD) URI id,
-                   @JsonProperty(IDENTIFIER_FIELD) String identifier,
-                   @JsonProperty(LABELS_FIELD) Map<String, String> labels,
-                   @JsonProperty(LEAD_FIELD) String lead,
-                   @JsonProperty(ACTIVE_FROM_FIELD) Instant activeFrom,
-                   @JsonProperty(ACTIVE_TO_FIELD) Instant activeTo) {
-        this.source = source;
-        this.id = id;
-        this.identifier = identifier;
-        this.labels = labels;
-        this.lead = lead;
-        this.activeFrom = activeFrom;
-        this.activeTo = activeTo;
-    }
+  private final URI source;
 
-    public URI getSource() {
-        return source;
-    }
+  @JsonProperty(ID_FIELD)
+  private final URI id;
 
-    public URI getId() {
-        return id;
-    }
+  @JsonProperty(IDENTIFIER_FIELD)
+  private final String identifier;
 
-    public String getIdentifier() {
-        return identifier;
-    }
+  @JsonProperty(LABELS_FIELD)
+  private final Map<String, String> labels;
 
-    public Map<String, String> getLabels() {
-        return labels;
-    }
+  @JsonProperty(LEAD_FIELD)
+  private final String lead;
 
-    public String getLead() {
-        return lead;
-    }
+  @JsonProperty(ACTIVE_FROM_FIELD)
+  private final Instant activeFrom;
 
-    public Instant getActiveFrom() {
-        return activeFrom;
-    }
+  @JsonProperty(ACTIVE_TO_FIELD)
+  private final Instant activeTo;
 
-    public Instant getActiveTo() {
-        return activeTo;
-    }
+  @JsonCreator
+  public Funding(
+      @JsonProperty(SOURCE_FIELD) URI source,
+      @JsonProperty(ID_FIELD) URI id,
+      @JsonProperty(IDENTIFIER_FIELD) String identifier,
+      @JsonProperty(LABELS_FIELD) Map<String, String> labels,
+      @JsonProperty(LEAD_FIELD) String lead,
+      @JsonProperty(ACTIVE_FROM_FIELD) Instant activeFrom,
+      @JsonProperty(ACTIVE_TO_FIELD) Instant activeTo) {
+    this.source = source;
+    this.id = id;
+    this.identifier = identifier;
+    this.labels = labels;
+    this.lead = lead;
+    this.activeFrom = activeFrom;
+    this.activeTo = activeTo;
+  }
+
+  public URI getSource() {
+    return source;
+  }
+
+  public URI getId() {
+    return id;
+  }
+
+  public String getIdentifier() {
+    return identifier;
+  }
+
+  public Map<String, String> getLabels() {
+    return labels;
+  }
+
+  public String getLead() {
+    return lead;
+  }
+
+  public Instant getActiveFrom() {
+    return activeFrom;
+  }
+
+  public Instant getActiveTo() {
+    return activeTo;
+  }
 }

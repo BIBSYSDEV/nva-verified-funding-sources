@@ -47,7 +47,7 @@ paths:
             type: string
           style: form
           explode: false
-          example: 'Ola+Nordmann'
+          example: "Ola+Nordmann"
         - name: term
           in: query
           description: The search term. Required if name is not supplied.
@@ -56,7 +56,7 @@ paths:
             type: string
           style: form
           explode: false
-          example: 'bio+research'
+          example: "bio+research"
         - name: offset
           in: query
           description: The search offset. At what position in the search result to start. Default is 0 (at the beginning).
@@ -76,27 +76,27 @@ paths:
           explode: false
           example: 10
       responses:
-        '200':
+        "200":
           description: successful operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SearchResult'
+                $ref: "#/components/schemas/SearchResult"
               examples:
                 objectExample:
-                  $ref: '#/components/examples/SearchResult'
+                  $ref: "#/components/examples/SearchResult"
             application/ld+json:
               schema:
-                $ref: '#/components/schemas/SearchResult'
+                $ref: "#/components/schemas/SearchResult"
               examples:
                 objectExample:
-                  $ref: '#/components/examples/SearchResult'
-        '400':
-          $ref: '#/components/responses/400'
-        '500':
-          $ref: '#/components/responses/500'
-        '502':
-          $ref: '#/components/responses/502'
+                  $ref: "#/components/examples/SearchResult"
+        "400":
+          $ref: "#/components/responses/400"
+        "500":
+          $ref: "#/components/responses/500"
+        "502":
+          $ref: "#/components/responses/502"
 
   /nfr/{identifier}:
     get:
@@ -117,97 +117,97 @@ paths:
           required: true
           schema:
             type: string
-          example: '318142'
+          example: "318142"
       responses:
-        '200':
+        "200":
           description: successful operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Funding'
+                $ref: "#/components/schemas/Funding"
               examples:
                 objectExample:
-                  $ref: '#/components/examples/Funding'
+                  $ref: "#/components/examples/Funding"
             application/ld+json:
               schema:
-                $ref: '#/components/schemas/Funding'
+                $ref: "#/components/schemas/Funding"
               examples:
                 objectExample:
-                  $ref: '#/components/examples/Funding'
-        '400':
-          $ref: '#/components/responses/400'
-        '404':
-          $ref: '#/components/responses/404'
-        '500':
-          $ref: '#/components/responses/500'
-        '502':
-          $ref: '#/components/responses/502'
+                  $ref: "#/components/examples/Funding"
+        "400":
+          $ref: "#/components/responses/400"
+        "404":
+          $ref: "#/components/responses/404"
+        "500":
+          $ref: "#/components/responses/500"
+        "502":
+          $ref: "#/components/responses/502"
 
 components:
   responses:
-    '400':
+    "400":
       description: Bad Request
       content:
         application/problem+json:
           schema:
-            $ref: '#/components/schemas/Problem'
-    '404':
+            $ref: "#/components/schemas/Problem"
+    "404":
       description: Not found
       content:
         application/problem+json:
           schema:
-            $ref: '#/components/schemas/Problem'
-    '500':
+            $ref: "#/components/schemas/Problem"
+    "500":
       description: Internal Server Error
       content:
         application/problem+json:
           schema:
-            $ref: '#/components/schemas/Problem'
-    '502':
+            $ref: "#/components/schemas/Problem"
+    "502":
       description: Bad Gateway from upstream
       content:
         application/problem+json:
           schema:
-            $ref: '#/components/schemas/Problem'
+            $ref: "#/components/schemas/Problem"
   schemas:
     Funding:
       type: object
       properties:
         id:
-          $ref: '#/components/schemas/Id'
+          $ref: "#/components/schemas/Id"
         identifier:
           type: string
         name:
-          $ref: '#/components/schemas/Languages'
+          $ref: "#/components/schemas/Languages"
         lead:
           type: string
-          description: 'Full name of person that is lead for this funding'
+          description: "Full name of person that is lead for this funding"
         activeFrom:
           type: string
           format: date-time
-          description: 'The funding is active from this timestamp'
+          description: "The funding is active from this timestamp"
         activeTo:
           type: string
           format: date-time
-          description: 'The funding is active to this timestamp'
+          description: "The funding is active to this timestamp"
 
     SearchResult:
       type: object
       properties:
-        '@context':
-          $ref: '#/components/schemas/Id'
+        "@context":
+          $ref: "#/components/schemas/Id"
         id:
-          $ref: '#/components/schemas/Id'
+          $ref: "#/components/schemas/Id"
         size:
           type: integer
         previousResults:
-          $ref: '#/components/schemas/Id'
+          $ref: "#/components/schemas/Id"
         nextResults:
-          $ref: '#/components/schemas/Id'
+          $ref: "#/components/schemas/Id"
         hits:
           type: array
           items:
-            $ref: '#/components/schemas/Funding'
+            $ref: "#/components/schemas/Funding"
 
     Problem:
       type: object
@@ -243,34 +243,34 @@ components:
 
     Languages:
       type: object
-      pattern: '^[a-z]{2}$'
+      pattern: "^[a-z]{2}$"
       additionalProperties:
         type: string
-        pattern: '.+'
+        pattern: ".+"
 
   examples:
     SearchResult:
       value:
-        '@context': 'https://github.bibsysdev.com/src/funding-context.json'
-        id: 'https://api.dev.nva.aws.unit.no/verified-funding/nfr?term=123&offset=1&size=1'
+        "@context": "https://github.bibsysdev.com/src/funding-context.json"
+        id: "https://api.dev.nva.aws.unit.no/verified-funding/nfr?term=123&offset=1&size=1"
         size: 3
-        previousResults: 'https://api.dev.nva.aws.unit.no/verified-funding/nfr?term=123&offset=0&size=1'
-        nextResults: 'https://api.dev.nva.aws.unit.no/verified-funding/nfr?term=123&offset=2&size=1'
+        previousResults: "https://api.dev.nva.aws.unit.no/verified-funding/nfr?term=123&offset=0&size=1"
+        nextResults: "https://api.dev.nva.aws.unit.no/verified-funding/nfr?term=123&offset=2&size=1"
         hits:
-          - id: 'https://api.dev.nva.aws.unit.no/verified-funding/nfr/318142'
-            identifier: '318142'
+          - id: "https://api.dev.nva.aws.unit.no/verified-funding/nfr/318142"
+            identifier: "318142"
             name:
-              nb: 'OmniSense 123'
-            lead: 'Ola Nordmann'
-            activeFrom: '2020-08-31T22:00:00.000Z'
-            activeTo: '2022-12-30T23:00:00.000Z'
+              nb: "OmniSense 123"
+            lead: "Ola Nordmann"
+            activeFrom: "2020-08-31T22:00:00.000Z"
+            activeTo: "2022-12-30T23:00:00.000Z"
 
     Funding:
       value:
-        id: 'https://api.dev.nva.aws.unit.no/verified-funding/nfr/318142'
-        identifier: '318142'
+        id: "https://api.dev.nva.aws.unit.no/verified-funding/nfr/318142"
+        identifier: "318142"
         name:
-          nb: 'OmniSense 123'
-        lead: 'Ola Nordmann'
-        activeFrom: '2020-08-31T22:00:00.000Z'
-        activeTo: '2022-12-30T23:00:00.000Z'
+          nb: "OmniSense 123"
+        lead: "Ola Nordmann"
+        activeFrom: "2020-08-31T22:00:00.000Z"
+        activeTo: "2022-12-30T23:00:00.000Z"

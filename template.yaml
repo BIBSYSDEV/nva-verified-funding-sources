@@ -1,8 +1,7 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
   Template creates lambdas and apis for verified funding sources
-
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
@@ -54,16 +53,15 @@ Parameters:
   AllowedOrigins:
     Type: String
     Description: comma separated list of external clients that are allowed to contact the HTTP APIs, "*" indicates that all origins are allowed
-    Default: '*'
+    Default: "*"
   SlackSnsArn:
     Type: AWS::SSM::Parameter::Value<String>
-    Default: '/NVA/Monitoring/SlackSnsArn'
+    Default: "/NVA/Monitoring/SlackSnsArn"
   CognitoAuthorizerUrls:
     Type: AWS::SSM::Parameter::Value<CommaDelimitedList>
     Default: CognitoAuthorizerUrls
 
 Resources:
-
   ApiAccessLogGroup:
     Type: AWS::Logs::LogGroup
 
@@ -71,7 +69,7 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       DefinitionBody:
-        'Fn::Transform':
+        "Fn::Transform":
           Name: AWS::Include
           Parameters:
             Location: ./docs/openapi.yaml
@@ -93,7 +91,7 @@ Resources:
           - Effect: Allow
             Principal:
               Service: [lambda.amazonaws.com]
-            Action: ['sts:AssumeRole']
+            Action: ["sts:AssumeRole"]
       Policies:
         - PolicyName: writeLog
           PolicyDocument:
@@ -104,7 +102,7 @@ Resources:
                   - logs:CreateLogGroup
                   - logs:CreateLogStream
                   - logs:PutLogEvents
-                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:*'
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:*"
 
   NfrFetchFundingFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction

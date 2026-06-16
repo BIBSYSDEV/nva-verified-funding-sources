@@ -19,53 +19,55 @@ import org.slf4j.LoggerFactory;
 
 public class NfrApiClient {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(NfrApiClient.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(NfrApiClient.class);
 
-    private final HttpClient httpClient;
-    private final URI baseUri;
+  private final HttpClient httpClient;
+  private final URI baseUri;
 
-    @JacocoGenerated
-    public static NfrApiClient defaultClient() {
-        var baseUri = URI.create(new Environment().readEnv(EnvironmentKeys.NFR_API_BASE_URI));
-        return new NfrApiClient(HttpClient.newBuilder().build(), baseUri);
+  @JacocoGenerated
+  public static NfrApiClient defaultClient() {
+    var baseUri = URI.create(new Environment().readEnv(EnvironmentKeys.NFR_API_BASE_URI));
+    return new NfrApiClient(HttpClient.newBuilder().build(), baseUri);
+  }
+
+  public NfrApiClient(HttpClient httpClient, URI baseUri) {
+    this.httpClient = httpClient;
+    this.baseUri = baseUri;
+  }
+
+  public NfrFundingSearchResult query(String query, int offset, int size)
+      throws BadGatewayException {
+    URI requestUri =
+        UriWrapper.fromUri(baseUri)
+            .addChild("search")
+            .addQueryParameter("query", query)
+            .addQueryParameter("from", Integer.toString(offset))
+            .addQueryParameter("size", Integer.toString(size))
+            .getUri();
+    HttpRequest request = HttpRequest.newBuilder().GET().uri(requestUri).build();
+
+    try {
+      HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
+
+      if (response.statusCode() == HttpURLConnection.HTTP_OK) {
+        return JsonUtils.dtoObjectMapper.readValue(response.body(), NfrFundingSearchResult.class);
+      }
+
+      throw new BadGatewayException(
+          String.format("Unexpected response: %d - %s", response.statusCode(), response.body()));
+    } catch (IOException | InterruptedException e) {
+      throw logAndCreateCustomException(e);
     }
+  }
 
-    public NfrApiClient(HttpClient httpClient, URI baseUri) {
-        this.httpClient = httpClient;
-        this.baseUri = baseUri;
+  @JacocoGenerated
+  private BadGatewayException logAndCreateCustomException(Exception e) {
+    var message = "Failed to communicate with NFR rest api!";
+    LOGGER.error(message, e);
+
+    if (e instanceof InterruptedException) {
+      Thread.currentThread().interrupt();
     }
-
-    public NfrFundingSearchResult query(String query, int offset, int size) throws BadGatewayException {
-        URI requestUri = UriWrapper.fromUri(baseUri)
-                             .addChild("search")
-                             .addQueryParameter("query", query)
-                             .addQueryParameter("from", Integer.toString(offset))
-                             .addQueryParameter("size", Integer.toString(size))
-                             .getUri();
-        HttpRequest request = HttpRequest.newBuilder().GET().uri(requestUri).build();
-
-        try {
-            HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
-
-            if (response.statusCode() == HttpURLConnection.HTTP_OK) {
-                return JsonUtils.dtoObjectMapper.readValue(response.body(), NfrFundingSearchResult.class);
-            }
-
-            throw new BadGatewayException(String.format("Unexpected response: %d - %s",
-                                                        response.statusCode(), response.body()));
-        } catch (IOException | InterruptedException e) {
-            throw logAndCreateCustomException(e);
-        }
-    }
-
-    @JacocoGenerated
-    private BadGatewayException logAndCreateCustomException(Exception e) {
-        var message = "Failed to communicate with NFR rest api!";
-        LOGGER.error(message, e);
-
-        if (e instanceof InterruptedException) {
-            Thread.currentThread().interrupt();
-        }
-        return new BadGatewayException(message);
-    }
+    return new BadGatewayException(message);
+  }
 }

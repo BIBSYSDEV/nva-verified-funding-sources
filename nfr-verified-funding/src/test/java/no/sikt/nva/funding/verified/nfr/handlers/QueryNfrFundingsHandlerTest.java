@@ -15,6 +15,7 @@ import static org.hamcrest.core.IsIterableContaining.hasItems;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
@@ -47,233 +48,237 @@ import org.zalando.problem.Problem;
 @WireMockTest(httpsEnabled = true)
 class QueryNfrFundingsHandlerTest {
 
-    private static final String TERM = "term";
-    private static final String NAME = "name";
-    private static final String OFFSET = "offset";
-    private static final String SIZE = "size";
-    private final Context context = new FakeContext();
-    private QueryNfrFundingsHandler handlerUnderTest;
-    private NfrApiStubber stubber;
-    private ByteArrayOutputStream output;
-    private Environment environment;
+  private static final String TERM = "term";
+  private static final String NAME = "name";
+  private static final String OFFSET = "offset";
+  private static final String SIZE = "size";
+  private final Context context = new FakeContext();
+  private QueryNfrFundingsHandler handlerUnderTest;
+  private NfrApiStubber stubber;
+  private ByteArrayOutputStream output;
+  private Environment environment;
 
-    @BeforeEach
-    void setup(WireMockRuntimeInfo runtimeInfo) {
-        this.environment = mock(Environment.class);
+  @BeforeEach
+  void setup(WireMockRuntimeInfo runtimeInfo) {
+    this.environment = mock(Environment.class);
 
-        when(environment.readEnv(API_DOMAIN)).thenReturn("localhost");
-        when(environment.readEnv(ALLOWED_ORIGIN)).thenReturn("*");
-        when(environment.readEnv(CUSTOM_DOMAIN_NAME_PATH)).thenReturn("verified-funding");
-        when(environment.readEnv(API_HOST)).thenReturn("localhost");
-        when(environment.readEnv(COGNITO_AUTHORIZER_URLS)).thenReturn("http://localhost:3000");
+    when(environment.readEnv(API_DOMAIN)).thenReturn("localhost");
+    when(environment.readEnv(ALLOWED_ORIGIN)).thenReturn("*");
+    when(environment.readEnv(CUSTOM_DOMAIN_NAME_PATH)).thenReturn("verified-funding");
+    when(environment.readEnv(API_HOST)).thenReturn("localhost");
+    when(environment.readEnv(COGNITO_AUTHORIZER_URLS)).thenReturn("http://localhost:3000");
 
-        var httpClient = WiremockHttpClient.create();
-        var apiClient = new NfrApiClient(httpClient, URI.create(runtimeInfo.getHttpsBaseUrl()));
-        handlerUnderTest = new QueryNfrFundingsHandler(environment, apiClient);
-        stubber = new NfrApiStubber();
-        output = new ByteArrayOutputStream();
-    }
+    var httpClient = WiremockHttpClient.create();
+    var apiClient = new NfrApiClient(httpClient, URI.create(runtimeInfo.getHttpsBaseUrl()));
+    handlerUnderTest = new QueryNfrFundingsHandler(environment, apiClient);
+    stubber = new NfrApiStubber();
+    output = new ByteArrayOutputStream();
+  }
 
-    @Test
-    void shouldUseOnlyNameQueryParameterIfCombinedWithTermQueryParameter() throws IOException {
-        var numberOfMatchesByName = 2;
-        var numberOfAdditionalMatches = 2;
-        var from = 0;
-        var size = 10;
+  @Test
+  void shouldUseOnlyNameQueryParameterIfCombinedWithTermQueryParameter() throws IOException {
+    var numberOfMatchesByName = 2;
+    var numberOfAdditionalMatches = 2;
+    var from = 0;
+    var size = 10;
 
-        var leadName = stubber.withMatchingLeadNameAsMostRelevantHit(numberOfMatchesByName,
-                                                                     numberOfAdditionalMatches,
-                                                                     from,
-                                                                     size);
+    var leadName =
+        stubber.withMatchingLeadNameAsMostRelevantHit(
+            numberOfMatchesByName, numberOfAdditionalMatches, from, size);
 
-        var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
-                        .withQueryParameters(Map.of(
-                            NAME, leadName,
-                            TERM, "abc",
-                            OFFSET, Integer.toString(from),
-                            SIZE, Integer.toString(size)))
-                        .build();
+    var input =
+        new HandlerRequestBuilder<Void>(dtoObjectMapper)
+            .withQueryParameters(
+                Map.of(
+                    NAME,
+                    leadName,
+                    TERM,
+                    "abc",
+                    OFFSET,
+                    Integer.toString(from),
+                    SIZE,
+                    Integer.toString(size)))
+            .build();
 
-        handlerUnderTest.handleRequest(input, output, context);
+    handlerUnderTest.handleRequest(input, output, context);
 
-        var response = GatewayResponse.fromOutputStream(output, PagedSearchResult.class);
+    var response = GatewayResponse.fromOutputStream(output, PagedSearchResult.class);
 
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
+    assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
 
-        @SuppressWarnings("unchecked")
-        PagedSearchResult<Funding> searchResult = response.getBodyObject(PagedSearchResult.class);
-        // need to "help" jackson due to type erasure:
-        List<Funding> hits = dtoObjectMapper.convertValue(searchResult.getHits(), new TypeReference<>() {
-        });
+    @SuppressWarnings("unchecked")
+    PagedSearchResult<Funding> searchResult = response.getBodyObject(PagedSearchResult.class);
+    // need to "help" jackson due to type erasure:
+    List<Funding> hits =
+        dtoObjectMapper.convertValue(searchResult.getHits(), new TypeReference<>() {});
 
-        var expectedProjectIds = stubber.getMatchingEntriesByLeadName(leadName).stream()
-                                     .map(NfrFunding::getProjectId).toArray(Integer[]::new);
-        var actualProjectIds = hits.stream()
-                                   .map(funding -> Integer.parseInt(funding.getIdentifier()))
-                                   .toList();
+    var expectedProjectIds =
+        stubber.getMatchingEntriesByLeadName(leadName).stream()
+            .map(NfrFunding::getProjectId)
+            .toArray(Integer[]::new);
+    var actualProjectIds =
+        hits.stream().map(funding -> Integer.parseInt(funding.getIdentifier())).toList();
 
-        assertThat(searchResult.getTotalSize(), is(equalTo(numberOfMatchesByName)));
+    assertThat(searchResult.getTotalSize(), is(equalTo(numberOfMatchesByName)));
 
-        assertThat(hits, iterableWithSize(numberOfMatchesByName));
-        assertThat(actualProjectIds, hasItems(expectedProjectIds));
-    }
+    assertThat(hits, iterableWithSize(numberOfMatchesByName));
+    assertThat(actualProjectIds, hasItems(expectedProjectIds));
+  }
 
-    @Test
-    void shouldUseTermParameterIfPresent() throws IOException {
-        var from = 0;
-        var size = 10;
-        var noTermMatches = 3;
-        var term = randomString();
-        var matches = stubber.withRandomMatches(term, noTermMatches, from, size);
+  @Test
+  void shouldUseTermParameterIfPresent() throws IOException {
+    var from = 0;
+    var size = 10;
+    var noTermMatches = 3;
+    var term = randomString();
+    var matches = stubber.withRandomMatches(term, noTermMatches, from, size);
 
-        var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
-                        .withQueryParameters(Map.of(
-                            TERM, term,
-                            OFFSET, Integer.toString(from),
-                            SIZE, Integer.toString(size)))
-                        .build();
+    var input =
+        new HandlerRequestBuilder<Void>(dtoObjectMapper)
+            .withQueryParameters(
+                Map.of(
+                    TERM, term,
+                    OFFSET, Integer.toString(from),
+                    SIZE, Integer.toString(size)))
+            .build();
 
-        handlerUnderTest.handleRequest(input, output, context);
+    handlerUnderTest.handleRequest(input, output, context);
 
-        var response = GatewayResponse.fromOutputStream(output, PagedSearchResult.class);
+    var response = GatewayResponse.fromOutputStream(output, PagedSearchResult.class);
 
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
+    assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
 
-        @SuppressWarnings("unchecked")
-        PagedSearchResult<Funding> searchResult = response.getBodyObject(PagedSearchResult.class);
-        // need to "help" jackson due to type erasure:
-        List<Funding> hits = dtoObjectMapper.convertValue(searchResult.getHits(), new TypeReference<>() {
-        });
+    @SuppressWarnings("unchecked")
+    PagedSearchResult<Funding> searchResult = response.getBodyObject(PagedSearchResult.class);
+    // need to "help" jackson due to type erasure:
+    List<Funding> hits =
+        dtoObjectMapper.convertValue(searchResult.getHits(), new TypeReference<>() {});
 
-        var expectedProjectIds = matches.stream()
-                                     .map(NfrFunding::getProjectId).toArray(Integer[]::new);
-        var actualProjectIds = hits.stream()
-                                   .map(funding -> Integer.parseInt(funding.getIdentifier()))
-                                   .toList();
+    var expectedProjectIds = matches.stream().map(NfrFunding::getProjectId).toArray(Integer[]::new);
+    var actualProjectIds =
+        hits.stream().map(funding -> Integer.parseInt(funding.getIdentifier())).toList();
 
-        assertThat(searchResult.getTotalSize(), is(equalTo(noTermMatches)));
+    assertThat(searchResult.getTotalSize(), is(equalTo(noTermMatches)));
 
-        assertThat(hits, iterableWithSize(noTermMatches));
-        assertThat(actualProjectIds, hasItems(expectedProjectIds));
-    }
+    assertThat(hits, iterableWithSize(noTermMatches));
+    assertThat(actualProjectIds, hasItems(expectedProjectIds));
+  }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"-10", "0"})
-    void nonPositiveSizeShouldGiveBadRequest(String size) throws IOException {
-        var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
-                        .withQueryParameters(Map.of(
-                            TERM, randomString(),
-                            OFFSET, "0",
-                            SIZE, size))
-                        .build();
+  @ParameterizedTest
+  @ValueSource(strings = {"-10", "0"})
+  void nonPositiveSizeShouldGiveBadRequest(String size) throws IOException {
+    var input =
+        new HandlerRequestBuilder<Void>(dtoObjectMapper)
+            .withQueryParameters(Map.of(TERM, randomString(), OFFSET, "0", SIZE, size))
+            .build();
 
-        handlerUnderTest.handleRequest(input, output, context);
+    handlerUnderTest.handleRequest(input, output, context);
 
-        var response = GatewayResponse.fromOutputStream(output, PagedSearchResult.class);
+    var response = GatewayResponse.fromOutputStream(output, PagedSearchResult.class);
 
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
+    assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
 
-        var problem = dtoObjectMapper.readValue(response.getBody(), Problem.class);
-        assertThat(problem.getDetail(), is(equalTo("Size must be a positive integer!")));
-    }
+    var problem = dtoObjectMapper.readValue(response.getBody(), Problem.class);
+    assertThat(problem.getDetail(), is(equalTo("Size must be a positive integer!")));
+  }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"111111111111111111111111", "1a1b1c"})
-    void nonIntegerSizeShouldGiveBadRequest(String size) throws IOException {
-        var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
-                        .withQueryParameters(Map.of(
-                            TERM, randomString(),
-                            OFFSET, "0",
-                            SIZE, size))
-                        .build();
+  @ParameterizedTest
+  @ValueSource(strings = {"111111111111111111111111", "1a1b1c"})
+  void nonIntegerSizeShouldGiveBadRequest(String size) throws IOException {
+    var input =
+        new HandlerRequestBuilder<Void>(dtoObjectMapper)
+            .withQueryParameters(Map.of(TERM, randomString(), OFFSET, "0", SIZE, size))
+            .build();
 
-        handlerUnderTest.handleRequest(input, output, context);
+    handlerUnderTest.handleRequest(input, output, context);
 
-        var response = GatewayResponse.fromOutputStream(output, PagedSearchResult.class);
+    var response = GatewayResponse.fromOutputStream(output, PagedSearchResult.class);
 
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
+    assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
 
-        var problem = dtoObjectMapper.readValue(response.getBody(), Problem.class);
-        assertThat(problem.getDetail(), is(equalTo("Size must be a positive integer!")));
-    }
+    var problem = dtoObjectMapper.readValue(response.getBody(), Problem.class);
+    assertThat(problem.getDetail(), is(equalTo("Size must be a positive integer!")));
+  }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"-10", "-1"})
-    void nonZeroOrPositiveOffsetShouldGiveBadRequest(String offset) throws IOException {
-        var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
-                        .withQueryParameters(Map.of(
-                            TERM, randomString(),
-                            OFFSET, offset,
-                            SIZE, "10"))
-                        .build();
+  @ParameterizedTest
+  @ValueSource(strings = {"-10", "-1"})
+  void nonZeroOrPositiveOffsetShouldGiveBadRequest(String offset) throws IOException {
+    var input =
+        new HandlerRequestBuilder<Void>(dtoObjectMapper)
+            .withQueryParameters(Map.of(TERM, randomString(), OFFSET, offset, SIZE, "10"))
+            .build();
 
-        handlerUnderTest.handleRequest(input, output, context);
+    handlerUnderTest.handleRequest(input, output, context);
 
-        var response = GatewayResponse.fromOutputStream(output, PagedSearchResult.class);
+    var response = GatewayResponse.fromOutputStream(output, PagedSearchResult.class);
 
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
+    assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
 
-        var problem = dtoObjectMapper.readValue(response.getBody(), Problem.class);
-        assertThat(problem.getDetail(), is(equalTo("Offset must be a zero or positive integer!")));
-    }
+    var problem = dtoObjectMapper.readValue(response.getBody(), Problem.class);
+    assertThat(problem.getDetail(), is(equalTo("Offset must be a zero or positive integer!")));
+  }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"111111111111111111111111", "1a1b1c"})
-    void nonIntegerOffsetShouldGiveBadRequest(String offset) throws IOException {
-        var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
-                        .withQueryParameters(Map.of(
-                            TERM, randomString(),
-                            OFFSET, offset,
-                            SIZE, "10"))
-                        .build();
+  @ParameterizedTest
+  @ValueSource(strings = {"111111111111111111111111", "1a1b1c"})
+  void nonIntegerOffsetShouldGiveBadRequest(String offset) throws IOException {
+    var input =
+        new HandlerRequestBuilder<Void>(dtoObjectMapper)
+            .withQueryParameters(Map.of(TERM, randomString(), OFFSET, offset, SIZE, "10"))
+            .build();
 
-        handlerUnderTest.handleRequest(input, output, context);
+    handlerUnderTest.handleRequest(input, output, context);
 
-        var response = GatewayResponse.fromOutputStream(output, PagedSearchResult.class);
+    var response = GatewayResponse.fromOutputStream(output, PagedSearchResult.class);
 
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
+    assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
 
-        var problem = dtoObjectMapper.readValue(response.getBody(), Problem.class);
-        assertThat(problem.getDetail(), is(equalTo("Offset must be a zero or positive integer!")));
-    }
+    var problem = dtoObjectMapper.readValue(response.getBody(), Problem.class);
+    assertThat(problem.getDetail(), is(equalTo("Offset must be a zero or positive integer!")));
+  }
 
-    @Test
-    void missingBothNameAndTermQueryParamShouldGiveBadRequest() throws IOException {
-        var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
-                        .withQueryParameters(Map.of(
-                            OFFSET, "0",
-                            SIZE, "10"))
-                        .build();
+  @Test
+  void missingBothNameAndTermQueryParamShouldGiveBadRequest() throws IOException {
+    var input =
+        new HandlerRequestBuilder<Void>(dtoObjectMapper)
+            .withQueryParameters(
+                Map.of(
+                    OFFSET, "0",
+                    SIZE, "10"))
+            .build();
 
-        handlerUnderTest.handleRequest(input, output, context);
+    handlerUnderTest.handleRequest(input, output, context);
 
-        var response = GatewayResponse.fromOutputStream(output, PagedSearchResult.class);
+    var response = GatewayResponse.fromOutputStream(output, PagedSearchResult.class);
 
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
+    assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
 
-        var problem = dtoObjectMapper.readValue(response.getBody(), Problem.class);
-        assertThat(problem.getDetail(), is(equalTo("Missing from query parameters: term")));
-    }
+    var problem = dtoObjectMapper.readValue(response.getBody(), Problem.class);
+    assertThat(problem.getDetail(), is(equalTo("Missing from query parameters: term")));
+  }
 
-    @Test
-    void shouldEncodeQueryParametersCorrectly() throws IOException, InterruptedException {
-        var httpClient = mock(HttpClient.class);
-        var apiClient = new NfrApiClient(httpClient, URI.create("https://example.org"));
-        handlerUnderTest = new QueryNfrFundingsHandler(environment, apiClient);
+  @Test
+  void shouldEncodeQueryParametersCorrectly() throws IOException, InterruptedException {
+    var httpClient = mock(HttpClient.class);
+    var apiClient = new NfrApiClient(httpClient, URI.create("https://example.org"));
+    handlerUnderTest = new QueryNfrFundingsHandler(environment, apiClient);
 
-        var paalUnencoded = "Pål";
-        final var paalEncoded = "P%C3%A5l";
+    var paalUnencoded = "Pål";
+    final var paalEncoded = "P%C3%A5l";
 
-        var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
-                        .withQueryParameters(Map.of(TERM, paalUnencoded,
-                                                    OFFSET, "0",
-                                                    SIZE, "10"))
-                        .build();
-        handlerUnderTest.handleRequest(input, output, context);
-        var expectedRequest = HttpRequest.newBuilder()
-                      .uri(URI.create("https://example.org/search?query=" + paalEncoded + "&from=0&size=10"))
-                      .GET()
-                      .build();
-        verify(httpClient).send(expectedRequest, BodyHandlers.ofString());
-    }
+    var input =
+        new HandlerRequestBuilder<Void>(dtoObjectMapper)
+            .withQueryParameters(
+                Map.of(
+                    TERM, paalUnencoded,
+                    OFFSET, "0",
+                    SIZE, "10"))
+            .build();
+    handlerUnderTest.handleRequest(input, output, context);
+    var expectedRequest =
+        HttpRequest.newBuilder()
+            .uri(URI.create("https://example.org/search?query=" + paalEncoded + "&from=0&size=10"))
+            .GET()
+            .build();
+    verify(httpClient).send(expectedRequest, BodyHandlers.ofString());
+  }
 }
