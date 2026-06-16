@@ -20,6 +20,8 @@ Globals:
         CUSTOM_DOMAIN_NAME_PATH: !Ref CustomDomainBasePath
         CRISTIN_BASE_PATH: !Ref CristinBasePath
         CRISTIN_FUNDING_SOURCES_PATH: !Ref CristinFundingSourcesPath
+        LOG_LEVEL: "info"
+        LOG4J_CONFIGURATION_FILE: classpath:nva-log4j2.xml
 
   Api:
     Cors:
