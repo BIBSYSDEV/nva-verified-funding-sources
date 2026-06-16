@@ -1,8 +1,23 @@
-dependencies {
-    implementation libs.bundles.nva
-    implementation libs.bundles.jackson
-    implementation libs.bundles.others
+plugins {
+    id 'nva.verified.funding.sources.java-conventions'
+}
 
-    testImplementation libs.wiremock
-    testImplementation libs.bundles.testing
+dependencies {
+    api(nvaCatalog.aws.lambda.core)
+    api(nvaCatalog.jackson.annotations)
+    api(nvaLibs.apigateway)
+    api(nvaLibs.core)
+    implementation(nvaCatalog.jackson.databind)
+    implementation(nvaCatalog.slf4j.api)
+    implementation(nvaLibs.json)
+    testImplementation(nvaCatalog.hamcrest)
+    testImplementation(nvaCatalog.jackson.core)
+    testImplementation(nvaCatalog.junit.jupiter.api)
+    testImplementation(nvaCatalog.junit.jupiter.params)
+    testImplementation(nvaCatalog.mockito.core)
+    testImplementation(nvaCatalog.wiremock.core)
+    testImplementation(nvaCatalog.wiremock.junit5)
+    testImplementation(nvaCatalog.zalando)
+    testImplementation(nvaLibs.testutils)
+    testRuntimeOnly(nvaCatalog.junit.jupiter.engine)
 }
