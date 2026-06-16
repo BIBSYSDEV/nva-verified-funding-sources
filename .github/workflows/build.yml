@@ -17,4 +17,3 @@ jobs:
       openapi_files: "docs/*.yaml"
     secrets:
       codacy_token: ${{ secrets.CODACY_PROJECT_TOKEN }}
-
