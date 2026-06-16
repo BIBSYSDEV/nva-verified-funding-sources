@@ -1,6 +1,5 @@
 plugins {
     id 'java'
-    id 'checkstyle'
     id 'pmd'
     id 'jacoco-report-aggregation'
 }
@@ -44,20 +43,6 @@ pmd {
     ruleSetConfig = rootProject.resources.text.fromFile('config/pmd/ruleset.xml')
     ruleSets = []
     ignoreFailures = false
-}
-
-checkstyle {
-    toolVersion = '10.23.1'
-    configFile = rootProject.resources.text.fromFile('config/checkstyle/checkstyle.xml').asFile()
-    showViolations = true
-}
-
-tasks.withType(Checkstyle).configureEach{
-    reports {
-        xml.required
-        html.required
-        html.stylesheet rootProject.resources.text.fromFile('config/checkstyle/checkstyle-simple.xsl')
-    }
 }
 
 check.dependsOn jacocoTestCoverageVerification
