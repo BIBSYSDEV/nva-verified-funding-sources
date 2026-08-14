@@ -19,5 +19,4 @@ dependencies {
     testImplementation(nvaCatalog.wiremock.junit5)
     testImplementation(nvaCatalog.zalando)
     testImplementation(nvaLibs.testutils)
-    testRuntimeOnly(nvaCatalog.junit.jupiter.engine)
 }
