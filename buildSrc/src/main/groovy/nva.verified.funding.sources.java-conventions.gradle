@@ -7,7 +7,7 @@ nva {
         allErrorsAsWarnings = false
     }
     java {
-        languageVersion = 21
+        languageVersion = 25
     }
     pmd {
         rulesetFile = rootProject.file('config/pmd/ruleset.xml')
@@ -15,4 +15,9 @@ nva {
     spotless {
         enabled = true
     }
+}
+
+dependencies {
+    testRuntimeOnly(nvaCatalog.junit.jupiter.engine)
+    testRuntimeOnly(nvaCatalog.junit.platform.launcher)
 }
