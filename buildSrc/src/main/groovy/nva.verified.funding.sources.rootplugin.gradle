@@ -6,6 +6,10 @@ nva {
     dependencyAnalysis {
         enforced = true
     }
+    spectral {
+        documents = ['docs/*.yaml']
+        rulesetFile = file('.spectral.yaml')
+    }
     jacoco {
         minMethodCoverage = 1.000
         minClassCoverage = 1.000
